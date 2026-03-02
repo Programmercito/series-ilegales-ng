@@ -348,19 +348,6 @@
         </div>
       }
 
-      <div class="disclaimer">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="disclaimer-icon">
-          <circle cx="12" cy="12" r="10"/>
-          <line x1="12" y1="8" x2="12" y2="12"/>
-          <line x1="12" y1="16" x2="12.01" y2="16"/>
-        </svg>
-        <p class="disclaimer-text">
-          <strong>Aviso:</strong> Esta herramienta es solo una referencia.
-          La decisión final de aceptar o rechazar un billete Serie B
-          es responsabilidad exclusiva del usuario.
-        </p>
-      </div>
-
       <div class="result-actions">
         <button class="btn btn-reset" (click)="reset()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -377,5 +364,17 @@
              class="file-input-hidden" (change)="onFileSelected($event)"/>
     </div>
   }
+
+  <div class="disclaimer">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="disclaimer-icon">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="12" y1="8" x2="12" y2="12"/>
+      <line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <p class="disclaimer-text">
+      El responsable de admitir o rechazar finalmente el billete es <strong>el usuario</strong>.
+      Esta aplicación <strong>no tiene garantía ni soporte</strong> y es <strong>totalmente gratuita</strong>.
+    </p>
+  </div>
 
 </main>
