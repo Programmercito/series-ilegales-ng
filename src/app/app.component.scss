@@ -1,564 +1,132 @@
-// ── Tokens ─────────────────────────────────────────────────────────
-$bg:        #071410;
-$surface:   #0d1f1a;
-$surface2:  #112b24;
-$border:    #1e4a3a;
-$green:     #48c78e;
-$green-dim: #2fa870;
-$green-glow:rgba(72,199,142,.2);
-$text:      #e6f4ef;
-$muted:     #7ab89a;
-$red:       #ff453a;
-$red-glow:  rgba(255,69,58,.15);
-$yellow:    #ffc800;
+// ── Tokens ───────────────────────────────────────────────────────────
+$bg:         #071410;
+$surface:    #0d1f1a;
+$surface2:   #112b24;
+$border:     #1e4a3a;
+$green:      #48c78e;
+$green-dim:  #2fa870;
+$green-glow: rgba(72,199,142,.2);
+$text:       #e6f4ef;
+$muted:      #7ab89a;
+$red:        #ff453a;
+$yellow:     #ffc800;
 
-// ── App Shell ───────────────────────────────────────────────────────
+// ── Shell ─────────────────────────────────────────────────────────────
 .app-shell {
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  min-height: 100dvh;
   background: $bg;
+  color: $text;
 }
 
-// ── Header ──────────────────────────────────────────────────────────
+// ── Header ───────────────────────────────────────────────────────────
 .app-header {
   background: $surface;
   border-bottom: 1px solid $border;
-  padding: 1rem 1.25rem;
+  padding: .75rem 1rem 0;
   position: sticky;
   top: 0;
-  z-index: 10;
-  backdrop-filter: blur(8px);
+  z-index: 100;
+  backdrop-filter: blur(10px);
+}
 
-  .header-inner {
-    display: flex;
-    align-items: center;
-    gap: .85rem;
-    max-width: 520px;
-    margin: 0 auto;
-  }
+.header-inner {
+  display: flex;
+  align-items: center;
+  gap: .85rem;
 }
 
 .logo-mark {
-  width: 42px;
-  height: 42px;
-  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
   color: $green;
+  flex-shrink: 0;
   filter: drop-shadow(0 0 8px $green-glow);
-
-  svg { width: 100%; height: 100%; }
+  svg { width: 100%; height: 100%; display: block; }
 }
 
-.header-text { display: flex; flex-direction: column; gap: .15rem; }
+.header-text {
+  flex: 1;
+  min-width: 0;
+}
 
 .title-row {
   display: flex;
   align-items: center;
-  gap: .55rem;
+  gap: .5rem;
 }
 
 .app-title {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: $text;
-  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-subtitle {
+  font-size: .72rem;
+  color: $muted;
+  margin-top: .05rem;
+  white-space: nowrap;
 }
 
 .beta-badge {
   font-size: .6rem;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: .1em;
-  background: rgba(72,199,142,.18);
+  background: rgba($green,.15);
   color: $green;
-  border: 1px solid rgba(72,199,142,.4);
+  border: 1px solid rgba($green,.3);
   border-radius: 6px;
-  padding: .15rem .45rem;
-  line-height: 1.4;
-  align-self: center;
+  padding: .15rem .4rem;
+  flex-shrink: 0;
 }
 
-.app-subtitle {
-  font-size: .75rem;
-  color: $muted;
-  font-weight: 500;
-  letter-spacing: .04em;
-}
-
-// ── Main ────────────────────────────────────────────────────────────
-.main-content {
-  flex: 1;
+// ── Nav ───────────────────────────────────────────────────────────────
+.app-nav {
   display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 1.5rem 1rem 2rem;
+  gap: .25rem;
+  margin-top: .6rem;
 }
 
-// ── Card ────────────────────────────────────────────────────────────
-.scan-card {
-  width: 100%;
-  max-width: 480px;
-  background: $surface;
-  border: 1px solid $border;
-  border-radius: 20px;
-  padding: 1.5rem;
-  box-shadow: 0 8px 32px rgba(0,0,0,.5);
+.nav-link {
   display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
-
-// ── Scan Zone ───────────────────────────────────────────────────────
-.scan-zone {
-  background: $surface2;
-  border: 2px dashed $border;
-  border-radius: 16px;
-  padding: 2.5rem 1.5rem;
-  display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: .75rem;
-  cursor: pointer;
-  transition: border-color .2s, background .2s;
+  gap: .45rem;
+  padding: .55rem .85rem;
+  border-radius: 10px 10px 0 0;
+  font-size: .82rem;
+  font-weight: 600;
+  color: $muted;
+  text-decoration: none;
+  transition: color .18s, background .18s, border-color .18s;
+  border-bottom: 2px solid transparent;
+  -webkit-tap-highlight-color: transparent;
+
+  svg {
+    width: 16px; height: 16px;
+    flex-shrink: 0;
+    transition: color .18s;
+  }
 
   &:hover {
-    border-color: $green-dim;
-    background: rgba(72,199,142,.04);
+    color: $text;
+    background: rgba($green,.06);
+  }
+
+  &.nav-link--active {
+    color: $green;
+    border-bottom-color: $green;
+    background: rgba($green,.08);
+
+    svg { color: $green; }
   }
 }
 
-.scan-icon-ring {
-  width: 96px;
-  height: 96px;
-  color: $green;
-  opacity: .7;
-  animation: pulse-ring 3s ease-in-out infinite;
-
-  svg { width: 100%; height: 100%; }
-}
-
-@keyframes pulse-ring {
-  0%, 100% { opacity: .5; transform: scale(1); }
-  50%       { opacity: .9; transform: scale(1.06); }
-}
-
-.ring-dash {
-  animation: spin-dash 20s linear infinite;
-  transform-origin: center;
-}
-
-@keyframes spin-dash {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
-
-.scan-hint {
-  font-size: .95rem;
-  color: $text;
-  text-align: center;
-
-  strong { color: $green; font-weight: 600; }
-}
-
-.scan-hint-sub {
-  font-size: .78rem;
-  color: $muted;
-  text-align: center;
-}
-
-// ── Buttons ─────────────────────────────────────────────────────────
-.btn-row {
-  display: flex;
-  justify-content: center;
-}
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: .55rem;
-  padding: .75rem 1.75rem;
-  border-radius: 50px;
-  border: none;
-  font-family: inherit;
-  font-size: .95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform .15s, box-shadow .15s, opacity .15s;
-
-  svg { width: 18px; height: 18px; flex-shrink: 0; }
-
-  &:active { transform: scale(.96); }
-}
-
-.btn-camera {
-  background: $green;
-  color: #000;
-  box-shadow: 0 0 18px rgba(72,199,142,.35);
-  width: 100%;
-  justify-content: center;
-  font-size: 1rem;
-
-  &:hover { box-shadow: 0 0 28px rgba(72,199,142,.55); }
-}
-
-.btn-reset {
-  background: $surface2;
-  color: $green;
-  border: 1.5px solid $border;
-  width: 100%;
-  justify-content: center;
-
-  &:hover { border-color: $green-dim; background: rgba(72,199,142,.05); }
-}
-
-.file-input-hidden {
-  display: none;
-}
-
-// ── Crop ─────────────────────────────────────────────────────────────
-.scan-card--crop { gap: 1rem; }
-
-.crop-header {
-  display: flex;
-  flex-direction: column;
-  gap: .3rem;
-}
-
-.crop-title {
-  font-size: .95rem;
-  font-weight: 600;
-  color: $text;
-}
-
-.crop-hint {
-  font-size: .78rem;
-  color: $muted;
-}
-
-.crop-container {
-  position: relative;
-  line-height: 0;
-  border-radius: 10px;
-  overflow: hidden;
-  background: #000;
-  user-select: none;
-  touch-action: none;
-}
-
-.crop-img {
-  display: block;
-  width: 100%;
-  height: auto;
-  max-height: 52vh;
-  object-fit: contain;
-  pointer-events: none;
-}
-
-.crop-canvas {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%;
-  height: 100%;
-  cursor: crosshair;
-  touch-action: none;
-}
-
-.crop-actions {
-  display: flex;
-  gap: .75rem;
-}
-
-.btn-crop-confirm {
-  flex: 1;
-  background: $green;
-  color: #000;
-  box-shadow: 0 0 16px $green-glow;
-  justify-content: center;
-
-  &:disabled {
-    opacity: .35;
-    cursor: not-allowed;
-    box-shadow: none;
-  }
-
-  &:not(:disabled):hover { box-shadow: 0 0 24px $green-glow; }
-}
-
-.btn-crop-skip {
-  flex: 1;
-  background: $surface2;
-  color: $muted;
-  border: 1.5px solid $border;
-  justify-content: center;
-
-  &:hover { border-color: $green-dim; color: $text; }
-}
-
-// ── Processing ──────────────────────────────────────────────────────
-.scan-card--processing {
-  gap: 1rem;
-}
-
-.preview-container {
-  position: relative;
-  border-radius: 12px;
-  overflow: hidden;
-  background: #000;
-  max-height: 240px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.preview-img {
-  width: 100%;
-  max-height: 240px;
-  object-fit: contain;
-  display: block;
-  opacity: .6;
-  filter: grayscale(60%);
-}
-
-.scan-overlay {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.scan-line {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, $green, transparent);
-  box-shadow: 0 0 8px $green;
-  animation: scan-move 1.8s ease-in-out infinite;
-}
-
-@keyframes scan-move {
-  0%   { top: 0%; opacity: 0; }
-  10%  { opacity: 1; }
-  90%  { opacity: 1; }
-  100% { top: 100%; opacity: 0; }
-}
-
-.progress-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: .65rem;
-  padding: 1rem 0;
-}
-
-.spinner-wrap {
-  position: relative;
-  width: 52px;
-  height: 52px;
-}
-
-.spinner {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  border: 3px solid $border;
-  border-top-color: $green;
-  animation: spin .75s linear infinite;
-  box-shadow: 0 0 12px $green-glow;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.progress-label {
-  font-size: .85rem;
-  color: $muted;
-  letter-spacing: .03em;
-}
-
-.progress-bar-track {
-  width: 100%;
-  height: 6px;
-  background: $surface2;
-  border-radius: 99px;
-  overflow: hidden;
-}
-
-.progress-bar-fill {
-  height: 100%;
-  background: linear-gradient(90deg, $green-dim, $green);
-  border-radius: 99px;
-  transition: width .2s;
-  box-shadow: 0 0 8px $green-glow;
-}
-
-.progress-pct {
-  font-size: .8rem;
-  color: $green;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-
-// ── Result ──────────────────────────────────────────────────────────
-.scan-card--result {
-  gap: 1.1rem;
-}
-
-.preview-thumb-row {
-  border-radius: 12px;
-  overflow: hidden;
-  background: #000;
-  max-height: 180px;
-  display: flex;
-  justify-content: center;
-}
-
-.preview-thumb {
-  max-height: 180px;
-  object-fit: contain;
-  opacity: .8;
-}
-
-.result-badge {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: .5rem;
-  padding: 1.5rem 1rem;
-  border-radius: 16px;
-
-  &--valid {
-    background: linear-gradient(135deg, rgba(72,199,142,.1), rgba(72,199,142,.03));
-    border: 1.5px solid rgba(72,199,142,.35);
-  }
-
-  &--invalid {
-    background: linear-gradient(135deg, rgba(255,69,58,.08), rgba(255,69,58,.03));
-    border: 1.5px solid rgba(255,69,58,.3);
-  }
-
-  &--unknown {
-    background: linear-gradient(135deg, rgba(255,200,0,.07), rgba(255,200,0,.02));
-    border: 1.5px solid rgba(255,200,0,.3);
-  }
-}
-
-.result-icon {
-  width: 72px;
-  height: 72px;
-  filter: drop-shadow(0 0 12px currentColor);
-
-  svg { width: 100%; height: 100%; }
-}
-
-.result-label {
-  font-size: 2rem;
-  font-weight: 900;
-  letter-spacing: .05em;
-
-  &.valid   { color: $green;   text-shadow: 0 0 20px rgba(72,199,142,.5); }
-  &.invalid { color: $red;     text-shadow: 0 0 20px rgba(255,69,58,.5); }
-  &.unknown { color: $yellow;  text-shadow: 0 0 20px rgba(255,200,0,.4); }
-}
-
-.result-sub {
-  font-size: .85rem;
-  color: $muted;
-  text-align: center;
-  padding: 0 .5rem;
-}
-
-// ── Serial Big Display ─────────────────────────────────────────────
-.serial-display {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: .3rem;
-  background: $surface2;
-  border: 1.5px solid $border;
-  border-radius: 14px;
-  padding: 1rem 1.25rem;
-
-  &.serial-valid  { border-color: rgba(72,199,142,.4); background: rgba(72,199,142,.05); }
-  &.serial-invalid{ border-color: rgba(255,69,58,.35); background: rgba(255,69,58,.05); }
-}
-
-.serial-num {
-  font-size: 2.1rem;
-  font-weight: 900;
-  letter-spacing: .06em;
-  color: $text;
-  font-variant-numeric: tabular-nums;
-  word-break: break-all;
-  text-align: center;
-}
-
-.serial-valid  .serial-num { color: $green; }
-.serial-invalid .serial-num { color: $red; }
-
-.serial-denom {
-  font-size: .85rem;
-  font-weight: 600;
-  color: $muted;
-  letter-spacing: .04em;
-  text-transform: uppercase;
-}
-
-.serial-invalid .serial-denom { color: $red; opacity: .7; }
-
-// ── Pills ───────────────────────────────────────────────────────────
-.detail-pills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: .65rem;
-}
-
-.pill {
-  flex: 1;
-  min-width: 120px;
-  background: $surface2;
-  border: 1px solid $border;
-  border-radius: 12px;
-  padding: .65rem 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: .2rem;
-
-  &--denom {
-    border-color: rgba(72,199,142,.25);
-    background: rgba(72,199,142,.04);
-  }
-
-  &--bad {
-    border-color: rgba(255,69,58,.25);
-    background: rgba(255,69,58,.04);
-  }
-}
-
-.pill-label {
-  font-size: .7rem;
-  text-transform: uppercase;
-  letter-spacing: .08em;
-  color: $muted;
-  font-weight: 600;
-}
-
-.pill-value {
-  font-size: 1rem;
-  font-weight: 700;
-  color: $text;
-  font-variant-numeric: tabular-nums;
-  word-break: break-all;
-}
-
-.pill--denom .pill-value { color: $green; }
-.pill--bad  .pill-value  { color: $red; }
-
-.result-actions {
-  margin-top: .25rem;
-}
-
-// ── Footer ──────────────────────────────────────────────────────────
+// ── Footer ────────────────────────────────────────────────────────────
 .app-footer {
   padding: 1rem 1rem 1.25rem;
   text-align: center;
@@ -568,8 +136,7 @@ $yellow:    #ffc800;
   display: flex;
   flex-direction: column;
   gap: .35rem;
-
-  strong { color: $green; font-weight: 600; }
+  margin-top: auto;
 }
 
 .footer-auto {
@@ -588,79 +155,20 @@ $yellow:    #ffc800;
     font-weight: 600;
     &:hover { text-decoration: underline; }
   }
-
-  strong { color: $green; }
 }
 
-// ── Responsive ──────────────────────────────────────────────────────
-
-// Tablet / desktop — give more breathing room
+// ── Responsive ───────────────────────────────────────────────────────
 @media (min-width: 600px) {
-  .app-header { padding: 1.1rem 2rem; }
-
-  .main-content { padding: 2rem 1.5rem 3rem; }
-
-  .scan-card {
-    padding: 2rem;
-    border-radius: 24px;
-  }
-
-  .scan-zone { padding: 3rem 2rem; }
-
-  .scan-icon-ring { width: 112px; height: 112px; }
-
-  .scan-hint { font-size: 1.05rem; }
-
-  .serial-num { font-size: 2.6rem; }
-
-  .result-label { font-size: 2.4rem; }
-
-  .btn-camera { font-size: 1.05rem; padding: .85rem 2rem; }
+  .app-header { padding: .85rem 2rem 0; }
+  .app-title  { font-size: 1.15rem; }
+  .nav-link   { font-size: .88rem; padding: .6rem 1rem; }
+  .nav-link svg { width: 17px; height: 17px; }
 }
 
-// Large desktop
-@media (min-width: 900px) {
-  .scan-card { max-width: 560px; }
-}
-
-// Normal mobile (≤ 480px) — most common phone
-@media (max-width: 480px) {
-  .app-title { font-size: 1rem; }
-
-  .scan-zone { padding: 2rem 1rem; }
-
-  .scan-icon-ring { width: 80px; height: 80px; }
-
-  .serial-num { font-size: 1.75rem; letter-spacing: .03em; }
-
-  .result-label { font-size: 1.75rem; }
-
-  .result-icon { width: 60px; height: 60px; }
-
-  .preview-container { max-height: 200px; }
-  .preview-thumb-row { max-height: 160px; }
-  .preview-thumb { max-height: 160px; }
-
-  .serial-display { padding: .85rem 1rem; }
-}
-
-// Small phones (≤ 360px)
 @media (max-width: 360px) {
-  .scan-card { padding: .9rem; border-radius: 14px; }
-
-  .app-title { font-size: .92rem; }
-  .app-subtitle { font-size: .68rem; }
-
-  .beta-badge { font-size: .55rem; }
-
-  .serial-num { font-size: 1.5rem; }
-
-  .result-label { font-size: 1.45rem; }
-
-  .result-icon { width: 52px; height: 52px; }
-
-  .btn { padding: .65rem 1.25rem; font-size: .88rem; }
-
-  .scan-hint { font-size: .88rem; }
-  .scan-hint-sub { font-size: .72rem; }
+  .app-title      { font-size: .9rem; }
+  .app-subtitle   { font-size: .65rem; }
+  .beta-badge     { font-size: .55rem; }
+  .nav-link       { font-size: .75rem; padding: .45rem .65rem; gap: .3rem; }
+  .nav-link svg   { width: 14px; height: 14px; }
 }

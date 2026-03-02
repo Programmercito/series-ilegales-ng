@@ -1,0 +1,452 @@
+// ── Tokens ───────────────────────────────────────────────────────────
+$bg:         #071410;
+$surface:    #0d1f1a;
+$surface2:   #112b24;
+$border:     #1e4a3a;
+$green:      #48c78e;
+$green-dim:  #2fa870;
+$green-glow: rgba(72,199,142,.2);
+$text:       #e6f4ef;
+$muted:      #7ab89a;
+$red:        #ff453a;
+$yellow:     #ffc800;
+
+// ── Main ─────────────────────────────────────────────────────────────
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.25rem 1rem 2rem;
+  width: 100%;
+}
+
+// ── Card ─────────────────────────────────────────────────────────────
+.scan-card {
+  width: 100%;
+  max-width: 480px;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: 20px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: .85rem;
+  box-shadow: 0 2px 24px rgba(0,0,0,.4), 0 0 0 1px rgba(72,199,142,.04);
+}
+
+// ── Scan Zone ────────────────────────────────────────────────────────
+.scan-zone {
+  border: 1.5px dashed $border;
+  border-radius: 14px;
+  padding: 2.5rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .75rem;
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+
+  &:hover, &:active {
+    border-color: $green;
+    background: $green-glow;
+  }
+}
+
+.scan-icon-ring {
+  width: 96px;
+  height: 96px;
+  color: $green;
+  opacity: .85;
+
+  svg { width: 100%; height: 100%; display: block; }
+
+  .ring-dash {
+    animation: spin-slow 12s linear infinite;
+    transform-origin: 48px 48px;
+  }
+}
+
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+
+.scan-hint {
+  font-size: .95rem;
+  color: $muted;
+  text-align: center;
+  strong { color: $green; font-weight: 600; }
+}
+
+.scan-hint-sub {
+  font-size: .78rem;
+  color: rgba($muted, .65);
+  text-align: center;
+}
+
+.file-input-hidden { display: none; }
+
+// ── Buttons ───────────────────────────────────────────────────────────
+.btn-row {
+  display: flex;
+  gap: .65rem;
+  flex-wrap: wrap;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  padding: .72rem 1.5rem;
+  border-radius: 12px;
+  font-size: .9rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all .18s;
+  -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
+
+  svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+  &:disabled { opacity: .4; cursor: not-allowed; }
+}
+
+.btn-camera {
+  flex: 1;
+  background: $green;
+  color: #071410;
+  font-size: .95rem;
+  padding: .8rem 1.75rem;
+  box-shadow: 0 0 20px $green-glow;
+
+  &:hover:not(:disabled) {
+    background: lighten($green, 6%);
+    box-shadow: 0 0 28px rgba(72,199,142,.35);
+    transform: translateY(-1px);
+  }
+  &:active:not(:disabled) { transform: translateY(0); }
+}
+
+.btn-crop-confirm {
+  flex: 1;
+  background: $green;
+  color: #071410;
+
+  &:hover:not(:disabled) { background: lighten($green, 6%); }
+}
+
+.btn-crop-skip {
+  flex: 1;
+  background: $surface2;
+  color: $muted;
+  border: 1px solid $border;
+
+  &:hover { background: lighten($surface2, 4%); color: $text; border-color: $green; }
+}
+
+.btn-reset {
+  width: 100%;
+  background: $surface2;
+  color: $text;
+  border: 1.5px solid $border;
+
+  &:hover { border-color: $green; color: $green; }
+}
+
+// ── Crop ─────────────────────────────────────────────────────────────
+.scan-card--crop {
+  gap: .7rem;
+}
+
+.crop-header {
+  text-align: center;
+}
+
+.crop-title {
+  font-size: .95rem;
+  font-weight: 600;
+  color: $text;
+}
+
+.crop-hint {
+  font-size: .78rem;
+  color: $muted;
+  margin-top: .2rem;
+}
+
+.crop-container {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #000;
+  max-height: 320px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.crop-img {
+  display: block;
+  max-width: 100%;
+  max-height: 320px;
+  object-fit: contain;
+}
+
+.crop-canvas {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.crop-actions {
+  display: flex;
+  gap: .6rem;
+}
+
+// ── Processing ───────────────────────────────────────────────────────
+.scan-card--processing {
+  gap: 1rem;
+}
+
+.preview-container {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000;
+  max-height: 220px;
+  display: flex;
+  justify-content: center;
+}
+
+.preview-img {
+  max-height: 220px;
+  object-fit: contain;
+  width: 100%;
+}
+
+.scan-overlay {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.scan-line {
+  position: absolute;
+  left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, $green, transparent);
+  box-shadow: 0 0 8px $green;
+  top: -2px;
+  animation: scan-sweep 1.6s ease-in-out infinite;
+}
+
+@keyframes scan-sweep {
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+.progress-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .65rem;
+  padding: 1rem 0;
+}
+
+.spinner-wrap {
+  position: relative;
+  width: 52px;
+  height: 52px;
+}
+
+.spinner {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 3px solid $border;
+  border-top-color: $green;
+  animation: spin .75s linear infinite;
+  box-shadow: 0 0 12px $green-glow;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.progress-label {
+  font-size: .85rem;
+  color: $muted;
+  letter-spacing: .03em;
+}
+
+.progress-bar-track {
+  width: 100%;
+  height: 6px;
+  background: $surface2;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, $green-dim, $green);
+  border-radius: 99px;
+  transition: width .2s;
+  box-shadow: 0 0 8px $green-glow;
+}
+
+.progress-pct {
+  font-size: .8rem;
+  color: $green;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+// ── Result ───────────────────────────────────────────────────────────
+.scan-card--result {
+  gap: 1.1rem;
+}
+
+.preview-thumb-row {
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000;
+  max-height: 180px;
+  display: flex;
+  justify-content: center;
+}
+
+.preview-thumb {
+  max-height: 180px;
+  object-fit: contain;
+  opacity: .8;
+}
+
+.result-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .5rem;
+  padding: 1.5rem 1rem;
+  border-radius: 16px;
+
+  &--valid {
+    background: linear-gradient(135deg, rgba(72,199,142,.1), rgba(72,199,142,.03));
+    border: 1.5px solid rgba(72,199,142,.35);
+  }
+  &--invalid {
+    background: linear-gradient(135deg, rgba(255,69,58,.08), rgba(255,69,58,.03));
+    border: 1.5px solid rgba(255,69,58,.3);
+  }
+  &--unknown {
+    background: linear-gradient(135deg, rgba(255,200,0,.07), rgba(255,200,0,.02));
+    border: 1.5px solid rgba(255,200,0,.3);
+  }
+}
+
+.result-icon {
+  width: 72px; height: 72px;
+  filter: drop-shadow(0 0 12px currentColor);
+  svg { width: 100%; height: 100%; }
+}
+
+.result-label {
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: .05em;
+  &.valid   { color: $green;  text-shadow: 0 0 20px rgba(72,199,142,.5); }
+  &.invalid { color: $red;    text-shadow: 0 0 20px rgba(255,69,58,.5); }
+  &.unknown { color: $yellow; text-shadow: 0 0 20px rgba(255,200,0,.4); }
+}
+
+.result-sub {
+  font-size: .85rem;
+  color: $muted;
+  text-align: center;
+  padding: 0 .5rem;
+}
+
+// ── Serial Display ───────────────────────────────────────────────────
+.serial-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .3rem;
+  background: $surface2;
+  border: 1.5px solid $border;
+  border-radius: 14px;
+  padding: 1rem 1.25rem;
+
+  &.serial-valid  { border-color: rgba(72,199,142,.4); background: rgba(72,199,142,.05); }
+  &.serial-invalid{ border-color: rgba(255,69,58,.35); background: rgba(255,69,58,.05); }
+}
+
+.serial-num {
+  font-size: 2.1rem;
+  font-weight: 900;
+  letter-spacing: .06em;
+  color: $text;
+  font-variant-numeric: tabular-nums;
+  word-break: break-all;
+  text-align: center;
+}
+
+.serial-valid  .serial-num { color: $green; }
+.serial-invalid .serial-num { color: $red; }
+
+.serial-denom {
+  font-size: .85rem;
+  font-weight: 600;
+  color: $muted;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.serial-invalid .serial-denom { color: $red; opacity: .7; }
+
+.result-actions { margin-top: .25rem; }
+
+// ── Responsive ───────────────────────────────────────────────────────
+@media (min-width: 600px) {
+  .main-content { padding: 2rem 1.5rem 3rem; }
+  .scan-card { padding: 2rem; border-radius: 24px; }
+  .scan-zone { padding: 3rem 2rem; }
+  .scan-icon-ring { width: 112px; height: 112px; }
+  .scan-hint { font-size: 1.05rem; }
+  .serial-num { font-size: 2.6rem; }
+  .result-label { font-size: 2.4rem; }
+  .btn-camera { font-size: 1.05rem; padding: .85rem 2rem; }
+}
+
+@media (min-width: 900px) {
+  .scan-card { max-width: 560px; }
+}
+
+@media (max-width: 480px) {
+  .scan-zone { padding: 2rem 1rem; }
+  .scan-icon-ring { width: 80px; height: 80px; }
+  .serial-num { font-size: 1.75rem; letter-spacing: .03em; }
+  .result-label { font-size: 1.75rem; }
+  .result-icon { width: 60px; height: 60px; }
+  .preview-container { max-height: 200px; }
+  .preview-thumb-row { max-height: 160px; }
+  .preview-thumb { max-height: 160px; }
+  .serial-display { padding: .85rem 1rem; }
+}
+
+@media (max-width: 360px) {
+  .scan-card { padding: .9rem; border-radius: 14px; }
+  .serial-num { font-size: 1.5rem; }
+  .result-label { font-size: 1.45rem; }
+  .result-icon { width: 52px; height: 52px; }
+  .btn { padding: .65rem 1.25rem; font-size: .88rem; }
+  .scan-hint { font-size: .88rem; }
+  .scan-hint-sub { font-size: .72rem; }
+}

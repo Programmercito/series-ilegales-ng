@@ -1,0 +1,249 @@
+// ── Tokens ───────────────────────────────────────────────────────────
+$bg:         #071410;
+$surface:    #0d1f1a;
+$surface2:   #112b24;
+$border:     #1e4a3a;
+$green:      #48c78e;
+$green-dim:  #2fa870;
+$green-glow: rgba(72,199,142,.2);
+$text:       #e6f4ef;
+$muted:      #7ab89a;
+$red:        #ff453a;
+$yellow:     #ffc800;
+
+// ── Main ─────────────────────────────────────────────────────────────
+.ser-main {
+  flex: 1;
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+// ── Loading ───────────────────────────────────────────────────────────
+.ser-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 3rem 0;
+  color: $muted;
+  font-size: .9rem;
+}
+
+.ser-spinner {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  border: 3px solid $border;
+  border-top-color: $green;
+  animation: spin .75s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+// ── Error ─────────────────────────────────────────────────────────────
+.ser-error {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  background: rgba($red, .08);
+  border: 1px solid rgba($red, .3);
+  border-radius: 12px;
+  padding: 1.25rem 1rem;
+  color: $red;
+  font-size: .9rem;
+
+  svg { width: 20px; height: 20px; flex-shrink: 0; }
+}
+
+// ── Stats ─────────────────────────────────────────────────────────────
+.ser-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .85rem;
+}
+
+.stat-card {
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: 16px;
+  padding: 1.1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+  border-left: 3px solid $green;
+}
+
+.stat-card--red {
+  border-left-color: $red;
+
+  .stat-value { color: $red; }
+}
+
+.stat-value {
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: $green;
+  letter-spacing: .02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: $muted;
+  font-weight: 600;
+}
+
+// ── Denomination Section ──────────────────────────────────────────────
+.denom-section {
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.denom-header {
+  padding: 1rem 1.25rem .85rem;
+  border-bottom: 1px solid $border;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: .5rem;
+  background: $surface2;
+}
+
+.denom-title-row {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+}
+
+.denom-badge {
+  background: rgba($green,.15);
+  color: $green;
+  border: 1px solid rgba($green,.3);
+  border-radius: 8px;
+  padding: .25rem .65rem;
+  font-size: .8rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+}
+
+.denom-title {
+  font-size: .95rem;
+  font-weight: 600;
+  color: $text;
+  margin: 0;
+}
+
+.denom-meta {
+  display: flex;
+  gap: .75rem;
+  flex-wrap: wrap;
+}
+
+.denom-count,
+.denom-total {
+  font-size: .78rem;
+  color: $muted;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.denom-total {
+  color: rgba($red, .9);
+  font-weight: 600;
+}
+
+// ── Table ─────────────────────────────────────────────────────────────
+.ranges-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.ranges-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .88rem;
+  font-variant-numeric: tabular-nums;
+
+  thead tr {
+    background: rgba($border, .3);
+  }
+
+  th {
+    padding: .65rem 1rem;
+    text-align: left;
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: $muted;
+    font-weight: 700;
+    white-space: nowrap;
+    border-bottom: 1px solid $border;
+  }
+
+  td {
+    padding: .6rem 1rem;
+    color: $text;
+    border-bottom: 1px solid rgba($border, .5);
+    white-space: nowrap;
+  }
+
+  tbody tr {
+    transition: background .15s;
+
+    &:hover {
+      background: rgba($green, .04);
+    }
+
+    &:last-child td { border-bottom: none; }
+  }
+}
+
+.col-num  { width: 48px; }
+.col-qty  { text-align: right; }
+
+.muted { color: $muted !important; }
+
+.serial-cell {
+  font-family: 'Inter', monospace;
+  font-weight: 600;
+  color: $text;
+  letter-spacing: .02em;
+}
+
+.qty-cell {
+  color: rgba($red, .85);
+  font-weight: 700;
+}
+
+// ── Note ─────────────────────────────────────────────────────────────
+.ser-note {
+  font-size: .75rem;
+  color: rgba($muted, .65);
+  text-align: center;
+  line-height: 1.6;
+  padding: 0 .5rem;
+}
+
+// ── Responsive ───────────────────────────────────────────────────────
+@media (min-width: 600px) {
+  .ser-main { padding: 2rem 1.5rem 3rem; }
+  .stat-value { font-size: 2rem; }
+  .ranges-table { font-size: .92rem; }
+}
+
+@media (max-width: 400px) {
+  .ser-stats { grid-template-columns: 1fr; }
+  .stat-value { font-size: 1.4rem; }
+  .ranges-table th,
+  .ranges-table td { padding: .5rem .75rem; }
+}

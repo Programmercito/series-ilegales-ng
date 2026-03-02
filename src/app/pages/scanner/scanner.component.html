@@ -1,0 +1,168 @@
+<main class="main-content">
+
+  @if (status() === 'idle') {
+    <div class="scan-card">
+      <div
+        class="scan-zone"
+        (click)="triggerFileInput()"
+        (dragover)="$event.preventDefault()"
+        (drop)="onDrop($event)"
+      >
+        <div class="scan-icon-ring">
+          <svg viewBox="0 0 96 96" fill="none">
+            <circle cx="48" cy="48" r="44" stroke="currentColor" stroke-width="1.5" stroke-dasharray="5 4" class="ring-dash"/>
+            <path d="M30 48h36M48 30v36" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <p class="scan-hint">Toca para <strong>tomar foto</strong> o subir imagen</p>
+        <p class="scan-hint-sub">Tambien puedes arrastrar una imagen aqui</p>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-camera" (click)="triggerFileInput()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+            <circle cx="12" cy="13" r="4"/>
+          </svg>
+          Tomar Foto / Subir
+        </button>
+      </div>
+      <input #fileInput type="file" accept="image/*" capture="environment"
+             class="file-input-hidden" (change)="onFileSelected($event)"/>
+    </div>
+  }
+
+  @if (status() === 'cropping') {
+    <div class="scan-card scan-card--crop">
+      <div class="crop-header">
+        <p class="crop-title">Selecciona la zona del número de serie</p>
+        <p class="crop-hint">Arrastra sobre la imagen para enmarcar el área a escanear</p>
+      </div>
+      <div class="crop-container">
+        <img #cropImg [src]="imagePreview()" class="crop-img" alt="Imagen" (load)="onCropImgLoad()" />
+        <canvas #cropCanvas class="crop-canvas"
+          (mousedown)="onCropStart($event)"
+          (mousemove)="onCropMove($event)"
+          (mouseup)="onCropEnd($event)"
+          (mouseleave)="onCropEnd($event)"
+          (touchstart)="onCropTouchStart($event)"
+          (touchmove)="onCropTouchMove($event)"
+          (touchend)="onCropTouchEnd($event)"
+        ></canvas>
+      </div>
+      <div class="crop-actions">
+        <button class="btn btn-crop-confirm" (click)="confirmCrop()" [disabled]="!hasCropSelection()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 11 12 14 22 4"/>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+          </svg>
+          Escanear zona
+        </button>
+        <button class="btn btn-crop-skip" (click)="skipCrop()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <path d="M3 9h18M9 21V9"/>
+          </svg>
+          Escanear todo
+        </button>
+      </div>
+      <input #fileInput type="file" accept="image/*" capture="environment"
+             class="file-input-hidden" (change)="onFileSelected($event)"/>
+    </div>
+  }
+
+  @if (status() === 'loading' || status() === 'scanning') {
+    <div class="scan-card scan-card--processing">
+      @if (imagePreview()) {
+        <div class="preview-container">
+          <img [src]="imagePreview()" alt="Imagen capturada" class="preview-img" />
+          <div class="scan-overlay"><div class="scan-line"></div></div>
+        </div>
+      }
+      <div class="progress-section">
+        <div class="spinner-wrap"><div class="spinner"></div></div>
+        <p class="progress-label">{{ progressMsg() }}</p>
+        @if (status() === 'scanning') {
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill" [style.width.%]="progress()"></div>
+          </div>
+          <p class="progress-pct">{{ progress() }}%</p>
+        }
+      </div>
+      <input #fileInput type="file" accept="image/*" capture="environment"
+             class="file-input-hidden" (change)="onFileSelected($event)"/>
+    </div>
+  }
+
+  @if (status() === 'done' || status() === 'error') {
+    <div class="scan-card scan-card--result">
+
+      @if (imagePreview()) {
+        <div class="preview-thumb-row">
+          <img [src]="imagePreview()" alt="Imagen analizada" class="preview-thumb" />
+        </div>
+      }
+
+      @if (isValid() === true) {
+        <div class="result-badge result-badge--valid">
+          <div class="result-icon">
+            <svg viewBox="0 0 72 72" fill="none">
+              <circle cx="36" cy="36" r="34" fill="rgba(72,199,142,0.12)" stroke="#48c78e" stroke-width="2"/>
+              <path d="M20 36l12 12 20-22" stroke="#48c78e" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <span class="result-label valid">VALIDO</span>
+          @if (errorMsg()) { <span class="result-sub">{{ errorMsg() }}</span> }
+        </div>
+      }
+
+      @if (isValid() === false) {
+        <div class="result-badge result-badge--invalid">
+          <div class="result-icon">
+            <svg viewBox="0 0 72 72" fill="none">
+              <circle cx="36" cy="36" r="34" fill="rgba(255,69,58,0.1)" stroke="#ff453a" stroke-width="2"/>
+              <path d="M24 24l24 24M48 24L24 48" stroke="#ff453a" stroke-width="3.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <span class="result-label invalid">INVALIDO</span>
+          @if (errorMsg()) { <span class="result-sub">{{ errorMsg() }}</span> }
+        </div>
+      }
+
+      @if (isValid() === null) {
+        <div class="result-badge result-badge--unknown">
+          <div class="result-icon">
+            <svg viewBox="0 0 72 72" fill="none">
+              <circle cx="36" cy="36" r="34" fill="rgba(255,200,0,0.1)" stroke="#ffc800" stroke-width="2"/>
+              <text x="36" y="44" text-anchor="middle" font-size="28" fill="#ffc800" font-weight="bold">?</text>
+            </svg>
+          </div>
+          <span class="result-label unknown">NO DETECTADO</span>
+          @if (errorMsg()) { <span class="result-sub">{{ errorMsg() }}</span> }
+        </div>
+      }
+
+      @if (detectedSerial()) {
+        <div class="serial-display" [class.serial-valid]="isValid() === true" [class.serial-invalid]="isValid() === false">
+          <span class="serial-num">{{ detectedSerial() }}</span>
+          @if (detectedDenom()) {
+            <span class="serial-denom">{{ detectedDenom() }}</span>
+          }
+        </div>
+      }
+
+      <div class="result-actions">
+        <button class="btn btn-reset" (click)="reset()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+            <path d="M3 3v5h5"/>
+          </svg>
+          Verificar otro billete
+        </button>
+      </div>
+
+      <input #fileInput type="file" accept="image/*" capture="environment"
+             class="file-input-hidden" (change)="onFileSelected($event)"/>
+    </div>
+  }
+
+</main>

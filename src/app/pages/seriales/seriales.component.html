@@ -1,0 +1,83 @@
+<main class="ser-main">
+
+  @if (loading()) {
+    <div class="ser-loading">
+      <div class="ser-spinner"></div>
+      <p>Cargando registros...</p>
+    </div>
+  }
+
+  @if (error()) {
+    <div class="ser-error">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      {{ error() }}
+    </div>
+  }
+
+  @if (!loading() && !error()) {
+
+    <!-- Summary stats -->
+    <div class="ser-stats">
+      <div class="stat-card">
+        <span class="stat-value">{{ totalRanges() }}</span>
+        <span class="stat-label">Rangos registrados</span>
+      </div>
+      <div class="stat-card stat-card--red">
+        <span class="stat-value">{{ formatNum(totalIllegal()) }}</span>
+        <span class="stat-label">Billetes ilegalizados</span>
+      </div>
+    </div>
+
+    <!-- Denomination groups -->
+    @for (group of groups(); track group.key) {
+      <section class="denom-section">
+
+        <div class="denom-header">
+          <div class="denom-title-row">
+            <span class="denom-badge">{{ group.label }}</span>
+            <h2 class="denom-title">Serie B — Ilegalizados</h2>
+          </div>
+          <div class="denom-meta">
+            <span class="denom-count">{{ group.ranges.length }} rangos</span>
+            <span class="denom-total">{{ formatNum(group.total) }} billetes</span>
+          </div>
+        </div>
+
+        <div class="ranges-table-wrap">
+          <table class="ranges-table">
+            <thead>
+              <tr>
+                <th class="col-num">#</th>
+                <th>Desde</th>
+                <th>Hasta</th>
+                <th class="col-qty">Cantidad</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (r of group.ranges; track r.del; let i = $index) {
+                <tr>
+                  <td class="col-num muted">{{ i + 1 }}</td>
+                  <td class="serial-cell">{{ formatNum(r.del) }}</td>
+                  <td class="serial-cell">{{ formatNum(r.al) }}</td>
+                  <td class="col-qty qty-cell">{{ formatNum(r.al - r.del + 1) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+      </section>
+    }
+
+    <p class="ser-note">
+      Fuente: Banco Central de Venezuela — Resolución de Ilegalizacion Serie B.
+      Solo los billetes cuyo número de serie esté dentro de estos rangos son considerados ilegales.
+    </p>
+
+  }
+
+</main>
