@@ -59,7 +59,7 @@ export class SerialesComponent implements OnInit {
   }
 
   formatNum(n: number): string {
-    return n.toLocaleString('es-VE');
+    return n.toLocaleString('es-BO');
   }
 
   totalIllegal(): number {
