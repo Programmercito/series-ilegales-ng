@@ -53,6 +53,45 @@
       </div>
     }
 
+    @if (status() === 'cropping') {
+      <div class="scan-card scan-card--crop">
+        <div class="crop-header">
+          <p class="crop-title">Selecciona la zona del número de serie</p>
+          <p class="crop-hint">Arrastra sobre la imagen para enmarcar el área a escanear</p>
+        </div>
+        <div class="crop-container">
+          <img #cropImg [src]="imagePreview()" class="crop-img" alt="Imagen" (load)="onCropImgLoad()" />
+          <canvas #cropCanvas class="crop-canvas"
+            (mousedown)="onCropStart($event)"
+            (mousemove)="onCropMove($event)"
+            (mouseup)="onCropEnd($event)"
+            (mouseleave)="onCropEnd($event)"
+            (touchstart)="onCropTouchStart($event)"
+            (touchmove)="onCropTouchMove($event)"
+            (touchend)="onCropTouchEnd($event)"
+          ></canvas>
+        </div>
+        <div class="crop-actions">
+          <button class="btn btn-crop-confirm" (click)="confirmCrop()" [disabled]="!hasCropSelection()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 11 12 14 22 4"/>
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+            </svg>
+            Escanear zona
+          </button>
+          <button class="btn btn-crop-skip" (click)="skipCrop()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <path d="M3 9h18M9 21V9"/>
+            </svg>
+            Escanear todo
+          </button>
+        </div>
+        <input #fileInput type="file" accept="image/*" capture="environment"
+               class="file-input-hidden" (change)="onFileSelected($event)"/>
+      </div>
+    }
+
     @if (status() === 'loading' || status() === 'scanning') {
       <div class="scan-card scan-card--processing">
         @if (imagePreview()) {

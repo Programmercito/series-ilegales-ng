@@ -214,6 +214,85 @@ $yellow:    #ffc800;
   display: none;
 }
 
+// ── Crop ─────────────────────────────────────────────────────────────
+.scan-card--crop { gap: 1rem; }
+
+.crop-header {
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+}
+
+.crop-title {
+  font-size: .95rem;
+  font-weight: 600;
+  color: $text;
+}
+
+.crop-hint {
+  font-size: .78rem;
+  color: $muted;
+}
+
+.crop-container {
+  position: relative;
+  line-height: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #000;
+  user-select: none;
+  touch-action: none;
+}
+
+.crop-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 52vh;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.crop-canvas {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.crop-actions {
+  display: flex;
+  gap: .75rem;
+}
+
+.btn-crop-confirm {
+  flex: 1;
+  background: $green;
+  color: #000;
+  box-shadow: 0 0 16px $green-glow;
+  justify-content: center;
+
+  &:disabled {
+    opacity: .35;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  &:not(:disabled):hover { box-shadow: 0 0 24px $green-glow; }
+}
+
+.btn-crop-skip {
+  flex: 1;
+  background: $surface2;
+  color: $muted;
+  border: 1.5px solid $border;
+  justify-content: center;
+
+  &:hover { border-color: $green-dim; color: $text; }
+}
+
 // ── Processing ──────────────────────────────────────────────────────
 .scan-card--processing {
   gap: 1rem;
