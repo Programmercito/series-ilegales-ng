@@ -21,6 +21,39 @@ $yellow:     #ffc800;
   width: 100%;
 }
 
+// ── Scan Tip ─────────────────────────────────────────────────────────
+.scan-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: .6rem;
+  max-width: 480px;
+  width: 100%;
+  background: rgba($green, .06);
+  border: 1px solid rgba($green, .2);
+  border-radius: 12px;
+  padding: .7rem 1rem;
+  margin-bottom: .65rem;
+
+  p {
+    font-size: .8rem;
+    color: $muted;
+    line-height: 1.45;
+
+    strong {
+      color: $green;
+      font-weight: 700;
+    }
+  }
+}
+
+.scan-tip-icon {
+  width: 20px;
+  height: 20px;
+  color: $green;
+  flex-shrink: 0;
+  margin-top: .1rem;
+}
+
 // ── Card ─────────────────────────────────────────────────────────────
 .scan-card {
   width: 100%;

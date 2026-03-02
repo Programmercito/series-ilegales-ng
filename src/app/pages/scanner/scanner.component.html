@@ -1,6 +1,14 @@
 <main class="main-content">
 
   @if (status() === 'idle') {
+    <div class="scan-tip">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="scan-tip-icon">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <p>Para mejores resultados, toma una <strong>foto clara y de cerca</strong> del número de serie del billete.</p>
+    </div>
     <div class="scan-card">
       <div
         class="scan-zone"
