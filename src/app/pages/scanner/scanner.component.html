@@ -257,16 +257,6 @@
         </div>
       }
 
-      <div class="result-actions">
-        <button class="btn btn-reset" (click)="reset()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-            <path d="M3 3v5h5"/>
-          </svg>
-          Verificar otro billete
-        </button>
-      </div>
-
       <div class="disclaimer">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="disclaimer-icon">
           <circle cx="12" cy="12" r="10"/>
@@ -278,6 +268,16 @@
           La decisión final de aceptar o rechazar un billete Serie B
           es responsabilidad exclusiva del usuario.
         </p>
+      </div>
+
+      <div class="result-actions">
+        <button class="btn btn-reset" (click)="reset()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+            <path d="M3 3v5h5"/>
+          </svg>
+          Verificar otro billete
+        </button>
       </div>
 
       <input #fileInput type="file" accept="image/*" capture="environment"
