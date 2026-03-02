@@ -38,8 +38,6 @@
              class="file-input-hidden" (change)="onFileSelected($event)"/>
       <input #galleryInput type="file" accept="image/*"
              class="file-input-hidden" (change)="onFileSelected($event)"/>
-      <input #galleryInput type="file" accept="image/*"
-             class="file-input-hidden" (change)="onFileSelected($event)"/>
     </div>
   }
 
@@ -107,6 +105,83 @@
     </div>
   }
 
+  @if (status() === 'confirming') {
+    <div class="scan-card scan-card--confirm">
+
+      @if (imagePreview()) {
+        <div class="preview-thumb-row">
+          <img [src]="imagePreview()" alt="Imagen escaneada" class="preview-thumb" />
+        </div>
+      }
+
+      <div class="confirm-header">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="confirm-icon">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
+        <p class="confirm-title">Verifica el número detectado</p>
+        <p class="confirm-hint">Puedes corregirlo antes de verificar</p>
+      </div>
+
+      <div class="confirm-inputs">
+        <div class="confirm-field confirm-field--num">
+          <label class="confirm-label">Número de serie</label>
+          <input type="text" class="confirm-input" inputmode="numeric"
+                 [ngModel]="editSerialNum()"
+                 (ngModelChange)="editSerialNum.set($event)"
+                 placeholder="Ej: 302885981" />
+        </div>
+        <div class="confirm-field confirm-field--letter">
+          <label class="confirm-label">Serie</label>
+          <input type="text" class="confirm-input confirm-input--letter" maxlength="1"
+                 [ngModel]="editSerialLetter()"
+                 (ngModelChange)="editSerialLetter.set($event)"
+                 placeholder="B" />
+        </div>
+      </div>
+
+      @if (allCandidates().length > 1) {
+        <div class="candidates-section">
+          <p class="candidates-label">Otros números detectados:</p>
+          <div class="candidates-list">
+            @for (c of allCandidates(); track c.num + c.letter; let i = $index) {
+              @if (i > 0) {
+                <button class="candidate-chip"
+                        [class.candidate-chip--active]="editSerialNum() === '' + c.num && editSerialLetter() === c.letter"
+                        (click)="selectCandidate(c)">
+                  {{ c.num }} {{ c.letter }}
+                </button>
+              }
+            }
+          </div>
+        </div>
+      }
+
+      <div class="confirm-actions">
+        <button class="btn btn-verify" (click)="confirmSerial()"
+                [disabled]="!editSerialNum() || !editSerialLetter()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+          Verificar
+        </button>
+        <button class="btn btn-reset" (click)="reset()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+            <path d="M3 3v5h5"/>
+          </svg>
+          Cancelar
+        </button>
+      </div>
+
+      <input #fileInput type="file" accept="image/*" capture="environment"
+             class="file-input-hidden" (change)="onFileSelected($event)"/>
+      <input #galleryInput type="file" accept="image/*"
+             class="file-input-hidden" (change)="onFileSelected($event)"/>
+    </div>
+  }
+
   @if (status() === 'done' || status() === 'error') {
     <div class="scan-card scan-card--result">
 
@@ -156,11 +231,21 @@
       }
 
       @if (detectedSerial()) {
-        <div class="serial-display" [class.serial-valid]="isValid() === true" [class.serial-invalid]="isValid() === false">
+        <div class="serial-display serial-display--editable"
+             [class.serial-valid]="isValid() === true"
+             [class.serial-invalid]="isValid() === false"
+             (click)="editFromResult()">
           <span class="serial-num">{{ detectedSerial() }}</span>
           @if (detectedDenom()) {
             <span class="serial-denom">{{ detectedDenom() }}</span>
           }
+          <span class="serial-edit-hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="edit-hint-icon">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+            Toca para corregir
+          </span>
         </div>
       }
 
@@ -172,6 +257,19 @@
           </svg>
           Verificar otro billete
         </button>
+      </div>
+
+      <div class="disclaimer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="disclaimer-icon">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <p class="disclaimer-text">
+          <strong>Aviso:</strong> Esta herramienta es solo una referencia.
+          La decisión final de aceptar o rechazar un billete Serie B
+          es responsabilidad exclusiva del usuario.
+        </p>
       </div>
 
       <input #fileInput type="file" accept="image/*" capture="environment"

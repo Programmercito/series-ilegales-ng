@@ -1,18 +1,19 @@
 import { Component, signal, ViewChild, ElementRef, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { createWorker, Worker } from 'tesseract.js';
+import { FormsModule } from '@angular/forms';
+import { createWorker, Worker, PSM } from 'tesseract.js';
 
 interface SeriesRange { del: number; al: number; }
 interface SeriesData { [key: string]: SeriesRange[]; }
 
-type ScanStatus = 'idle' | 'loading' | 'cropping' | 'scanning' | 'done' | 'error';
+type ScanStatus = 'idle' | 'loading' | 'cropping' | 'scanning' | 'confirming' | 'done' | 'error';
 
 interface Rect { x1: number; y1: number; x2: number; y2: number; }
 
 @Component({
   selector: 'app-scanner',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './scanner.component.html',
   styleUrl: './scanner.component.scss'
 })
@@ -31,6 +32,12 @@ export class ScannerComponent implements OnInit, OnDestroy {
   detectedDenom    = signal<string | null>(null);
   errorMsg         = signal<string | null>(null);
   hasCropSelection = signal<boolean>(false);
+
+  // Confirmation step: user can edit before verifying
+  editSerialNum    = signal<string>('');
+  editSerialLetter = signal<string>('');
+  rawOcrText       = signal<string>('');
+  allCandidates    = signal<Array<{ num: number; letter: string }>>([]);
 
   private seriesData: SeriesData | null = null;
   private worker: Worker | null = null;
@@ -65,6 +72,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
     });
     await this.worker.setParameters({
       tessedit_char_whitelist: '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ ',
+      tessedit_pageseg_mode: PSM.SINGLE_BLOCK,
     });
     this.workerReady = true;
   }
@@ -226,22 +234,39 @@ export class ScannerComponent implements OnInit, OnDestroy {
     this.status.set('scanning');
     this.progress.set(0);
     try {
-      const preprocessed = await this.preprocessImage(dataUrl);
+      // Try multiple preprocessing strategies and merge candidates
+      const strategies = [
+        this.preprocessImage(dataUrl, 'binarize'),
+        this.preprocessImage(dataUrl, 'contrast'),
+        this.preprocessImage(dataUrl, 'invert'),
+      ];
+      const canvases = await Promise.all(strategies);
+
       if (!this.workerReady || !this.worker) await this.initWorker();
-      const result = await this.worker!.recognize(preprocessed);
-      this.analyzeText(result.data.text);
+
+      const allText: string[] = [];
+      for (const canvas of canvases) {
+        const result = await this.worker!.recognize(canvas);
+        allText.push(result.data.text);
+      }
+
+      this.extractAndConfirm(allText.join('\n'));
     } catch {
       this.status.set('error');
       this.errorMsg.set('Error al procesar la imagen. Intente de nuevo.');
     }
   }
 
-  private analyzeText(text: string) {
+  /** Extract candidates and go to confirmation step */
+  private extractAndConfirm(text: string) {
     const normalized = text.replace(/\n/g, ' ').replace(/\s+/g, ' ').toUpperCase().trim();
+    this.rawOcrText.set(normalized);
+
     const patterns = [
-      /\b(\d{7,10})\s+([A-Z])\b/g,
-      /\b(\d{7,10})([A-Z])\b/g,
+      /(\d{7,10})\s+([A-Z])\b/g,
+      /(\d{7,10})([A-Z])\b/g,
       /(\d{7,10})\s*([A-Z])/g,
+      /(\d{6,10})\s+([A-Z])/g,
     ];
     const candidates: Array<{ num: number; letter: string }> = [];
     const seen = new Set<string>();
@@ -250,33 +275,88 @@ export class ScannerComponent implements OnInit, OnDestroy {
       pattern.lastIndex = 0;
       while ((match = pattern.exec(normalized)) !== null) {
         const key = `${match[1]}-${match[2]}`;
-        if (!seen.has(key)) { seen.add(key); candidates.push({ num: parseInt(match[1], 10), letter: match[2] }); }
+        if (!seen.has(key)) {
+          seen.add(key);
+          candidates.push({ num: parseInt(match[1], 10), letter: match[2] });
+        }
       }
-      if (candidates.length > 0) break;
     }
-    if (candidates.length === 0) {
+
+    // Sort: prefer B series, then longest number
+    const sorted = [...candidates].sort((a, b) => {
+      if (a.letter === 'B' && b.letter !== 'B') return -1;
+      if (a.letter !== 'B' && b.letter === 'B') return 1;
+      return String(b.num).length - String(a.num).length;
+    });
+
+    this.allCandidates.set(sorted);
+
+    if (sorted.length > 0) {
+      this.editSerialNum.set(String(sorted[0].num));
+      this.editSerialLetter.set(sorted[0].letter);
+    } else {
+      this.editSerialNum.set('');
+      this.editSerialLetter.set('');
+    }
+
+    this.status.set('confirming');
+  }
+
+  /** Called when user confirms the serial (edited or not) */
+  confirmSerial() {
+    const numStr = this.editSerialNum().replace(/\s/g, '');
+    const letter = this.editSerialLetter().toUpperCase().trim();
+    const num = parseInt(numStr, 10);
+
+    if (!num || isNaN(num) || !letter) {
       this.status.set('done');
       this.isValid.set(null);
-      this.errorMsg.set('No se detectó número de serie. Intente recortando la zona del número.');
+      this.errorMsg.set('Número inválido. Intente de nuevo.');
       return;
     }
-    const sorted = [...candidates].sort((a, b) => (a.letter === 'B' ? -1 : 1) - (b.letter === 'B' ? -1 : 1));
-    const best = sorted[0];
-    this.detectedSerial.set(`${best.num} ${best.letter}`);
-    if (best.letter !== 'B') {
-      this.errorMsg.set(`Serie ${best.letter} — no pertenece a los billetes ilegales`);
-      this.status.set('done'); this.isValid.set(true); return;
+
+    this.detectedSerial.set(`${num} ${letter}`);
+
+    if (letter !== 'B') {
+      this.errorMsg.set(`Serie ${letter} — no pertenece a los billetes ilegales`);
+      this.status.set('done');
+      this.isValid.set(true);
+      return;
     }
-    const illegalDenom = this.checkInRanges(best.num);
+
+    const illegalDenom = this.checkInRanges(num);
     if (illegalDenom) {
       this.detectedDenom.set(illegalDenom);
       this.errorMsg.set(`Registrado como billete Serie B ilegalizado (${illegalDenom})`);
-      this.status.set('done'); this.isValid.set(false);
+      this.status.set('done');
+      this.isValid.set(false);
     } else {
       this.detectedDenom.set(null);
       this.errorMsg.set('Serie B — número no figura en registros ilegalizados');
-      this.status.set('done'); this.isValid.set(true);
+      this.status.set('done');
+      this.isValid.set(true);
     }
+  }
+
+  /** Select a different candidate from the list */
+  selectCandidate(c: { num: number; letter: string }) {
+    this.editSerialNum.set(String(c.num));
+    this.editSerialLetter.set(c.letter);
+  }
+
+  /** Go back to confirming step from result to edit and re-verify */
+  editFromResult() {
+    const serial = this.detectedSerial();
+    if (serial) {
+      const parts = serial.split(' ');
+      this.editSerialNum.set(parts[0] ?? '');
+      this.editSerialLetter.set(parts[1] ?? '');
+    }
+    this.isValid.set(null);
+    this.detectedSerial.set(null);
+    this.detectedDenom.set(null);
+    this.errorMsg.set(null);
+    this.status.set('confirming');
   }
 
   private checkInRanges(num: number): string | null {
@@ -287,7 +367,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
     return null;
   }
 
-  private preprocessImage(dataUrl: string): Promise<HTMLCanvasElement> {
+  private preprocessImage(dataUrl: string, strategy: 'binarize' | 'contrast' | 'invert'): Promise<HTMLCanvasElement> {
     return new Promise(resolve => {
       const img = new Image();
       img.onload = () => {
@@ -296,18 +376,74 @@ export class ScannerComponent implements OnInit, OnDestroy {
         const tctx = tmp.getContext('2d')!;
         tctx.drawImage(img, 0, 0);
         const { x, y, w, h } = this.autoCrop(tctx, img.width, img.height);
-        const scale = Math.max(1, Math.min(4, 2000 / Math.max(w, h)));
+
+        // Scale up aggressively — small text needs at least 3x
+        const scale = Math.max(2, Math.min(5, 3000 / Math.max(w, h)));
         const canvas = document.createElement('canvas');
         canvas.width = w * scale; canvas.height = h * scale;
         const ctx = canvas.getContext('2d')!;
-        ctx.filter = 'grayscale(100%) contrast(170%) brightness(115%)';
+
+        // Draw with initial greyscale
+        ctx.filter = 'grayscale(100%)';
         ctx.drawImage(tmp, x, y, w, h, 0, 0, canvas.width, canvas.height);
+
         const id = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const d = id.data;
-        for (let i = 0; i < d.length; i += 4) {
-          const c = Math.min(255, Math.max(0, (d[i] - 128) * 1.5 + 128));
-          d[i] = d[i+1] = d[i+2] = c;
+
+        if (strategy === 'binarize') {
+          // Adaptive Otsu-like binarization
+          const histogram = new Array(256).fill(0);
+          for (let i = 0; i < d.length; i += 4) histogram[d[i]]++;
+          const totalPixels = d.length / 4;
+          let sum = 0;
+          for (let i = 0; i < 256; i++) sum += i * histogram[i];
+          let sumB = 0, wB = 0, wF = 0, maxVariance = 0, threshold = 128;
+          for (let t = 0; t < 256; t++) {
+            wB += histogram[t];
+            if (wB === 0) continue;
+            wF = totalPixels - wB;
+            if (wF === 0) break;
+            sumB += t * histogram[t];
+            const mB = sumB / wB;
+            const mF = (sum - sumB) / wF;
+            const variance = wB * wF * (mB - mF) * (mB - mF);
+            if (variance > maxVariance) { maxVariance = variance; threshold = t; }
+          }
+          for (let i = 0; i < d.length; i += 4) {
+            const v = d[i] > threshold ? 255 : 0;
+            d[i] = d[i+1] = d[i+2] = v;
+          }
+        } else if (strategy === 'contrast') {
+          // High contrast + sharpen
+          for (let i = 0; i < d.length; i += 4) {
+            const c = Math.min(255, Math.max(0, (d[i] - 128) * 2.5 + 128));
+            d[i] = d[i+1] = d[i+2] = c;
+          }
+        } else if (strategy === 'invert') {
+          // Otsu binarize but inverted (for dark backgrounds)
+          const histogram = new Array(256).fill(0);
+          for (let i = 0; i < d.length; i += 4) histogram[d[i]]++;
+          const totalPixels = d.length / 4;
+          let sum = 0;
+          for (let i = 0; i < 256; i++) sum += i * histogram[i];
+          let sumB = 0, wB = 0, wF = 0, maxVariance = 0, threshold = 128;
+          for (let t = 0; t < 256; t++) {
+            wB += histogram[t];
+            if (wB === 0) continue;
+            wF = totalPixels - wB;
+            if (wF === 0) break;
+            sumB += t * histogram[t];
+            const mB = sumB / wB;
+            const mF = (sum - sumB) / wF;
+            const variance = wB * wF * (mB - mF) * (mB - mF);
+            if (variance > maxVariance) { maxVariance = variance; threshold = t; }
+          }
+          for (let i = 0; i < d.length; i += 4) {
+            const v = d[i] > threshold ? 0 : 255;
+            d[i] = d[i+1] = d[i+2] = v;
+          }
         }
+
         ctx.putImageData(id, 0, 0);
         resolve(canvas);
       };
@@ -345,6 +481,10 @@ export class ScannerComponent implements OnInit, OnDestroy {
     this.hasCropSelection.set(false);
     this.cropDragging = false;
     this.cropRect = { x1: 0, y1: 0, x2: 0, y2: 0 };
+    this.editSerialNum.set('');
+    this.editSerialLetter.set('');
+    this.rawOcrText.set('');
+    this.allCandidates.set([]);
   }
 
   reset() {

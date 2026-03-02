@@ -430,6 +430,216 @@ $yellow:     #ffc800;
 
 .result-actions { margin-top: .25rem; }
 
+// ── Editable serial from result ──────────────────────────────────────
+.serial-display--editable {
+  cursor: pointer;
+  transition: border-color .18s, background .18s, transform .15s;
+
+  &:hover, &:active {
+    transform: scale(1.02);
+  }
+
+  &.serial-valid:hover  { border-color: rgba(72,199,142,.7); background: rgba(72,199,142,.1); }
+  &.serial-invalid:hover{ border-color: rgba(255,69,58,.55); background: rgba(255,69,58,.09); }
+}
+
+.serial-edit-hint {
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  font-size: .72rem;
+  color: $muted;
+  opacity: .6;
+  margin-top: .2rem;
+  transition: opacity .18s;
+
+  .serial-display--editable:hover & { opacity: 1; }
+}
+
+.edit-hint-icon {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+
+// ── Disclaimer ───────────────────────────────────────────────────────
+.disclaimer {
+  display: flex;
+  align-items: flex-start;
+  gap: .6rem;
+  background: rgba($yellow, .06);
+  border: 1px solid rgba($yellow, .2);
+  border-radius: 12px;
+  padding: .75rem 1rem;
+}
+
+.disclaimer-icon {
+  width: 20px;
+  height: 20px;
+  color: $yellow;
+  flex-shrink: 0;
+  margin-top: .1rem;
+}
+
+.disclaimer-text {
+  font-size: .75rem;
+  color: $muted;
+  line-height: 1.45;
+
+  strong {
+    color: $yellow;
+    font-weight: 700;
+  }
+}
+
+// ── Confirm Step ─────────────────────────────────────────────────────
+.scan-card--confirm {
+  gap: 1rem;
+}
+
+.confirm-header {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .3rem;
+}
+
+.confirm-icon {
+  width: 28px;
+  height: 28px;
+  color: $green;
+  margin-bottom: .15rem;
+}
+
+.confirm-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: $text;
+}
+
+.confirm-hint {
+  font-size: .78rem;
+  color: $muted;
+}
+
+.confirm-inputs {
+  display: flex;
+  gap: .65rem;
+  align-items: flex-end;
+}
+
+.confirm-field {
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+}
+
+.confirm-field--num { flex: 1; }
+.confirm-field--letter { flex: 0 0 70px; }
+
+.confirm-label {
+  font-size: .72rem;
+  font-weight: 600;
+  color: $muted;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.confirm-input {
+  background: $surface2;
+  border: 1.5px solid $border;
+  border-radius: 10px;
+  padding: .7rem .85rem;
+  color: $text;
+  font-size: 1.15rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .04em;
+  outline: none;
+  transition: border-color .18s;
+  width: 100%;
+  box-sizing: border-box;
+
+  &:focus {
+    border-color: $green;
+    box-shadow: 0 0 0 3px $green-glow;
+  }
+
+  &::placeholder {
+    color: rgba($muted, .4);
+    font-weight: 400;
+  }
+}
+
+.confirm-input--letter {
+  text-align: center;
+  text-transform: uppercase;
+  font-size: 1.3rem;
+}
+
+.candidates-section {
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+}
+
+.candidates-label {
+  font-size: .75rem;
+  color: $muted;
+}
+
+.candidates-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+}
+
+.candidate-chip {
+  background: $surface2;
+  border: 1px solid $border;
+  border-radius: 8px;
+  padding: .35rem .7rem;
+  color: $muted;
+  font-size: .8rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: all .15s;
+
+  &:hover {
+    border-color: $green;
+    color: $text;
+  }
+
+  &--active {
+    border-color: $green;
+    color: $green;
+    background: rgba($green, .1);
+  }
+}
+
+.confirm-actions {
+  display: flex;
+  gap: .6rem;
+}
+
+.btn-verify {
+  flex: 1;
+  background: $green;
+  color: #071410;
+  font-size: .95rem;
+  padding: .8rem 1.5rem;
+  box-shadow: 0 0 20px $green-glow;
+
+  &:hover:not(:disabled) {
+    background: lighten($green, 6%);
+    box-shadow: 0 0 28px rgba(72,199,142,.35);
+    transform: translateY(-1px);
+  }
+  &:active:not(:disabled) { transform: translateY(0); }
+}
+
 // ── Responsive ───────────────────────────────────────────────────────
 @media (min-width: 600px) {
   .main-content { padding: 2rem 1.5rem 3rem; }
