@@ -213,10 +213,16 @@ export class ScannerComponent implements OnInit, OnDestroy {
     const scaleX = img.naturalWidth  / canvas.width;
     const scaleY = img.naturalHeight / canvas.height;
     const { x1, y1, x2, y2 } = this.cropRect;
-    const rx = Math.min(x1, x2) * scaleX;
-    const ry = Math.min(y1, y2) * scaleY;
-    const rw = Math.abs(x2 - x1) * scaleX;
-    const rh = Math.abs(y2 - y1) * scaleY;
+    const rx = Math.round(Math.min(x1, x2) * scaleX);
+    const ry = Math.round(Math.min(y1, y2) * scaleY);
+    const rw = Math.round(Math.abs(x2 - x1) * scaleX);
+    const rh = Math.round(Math.abs(y2 - y1) * scaleY);
+
+    if (rw < 5 || rh < 5) {
+      this.status.set('error');
+      this.errorMsg.set('La zona seleccionada es muy pequeña. Intente de nuevo.');
+      return;
+    }
 
     const out  = document.createElement('canvas');
     out.width  = rw;
@@ -355,28 +361,41 @@ export class ScannerComponent implements OnInit, OnDestroy {
   }
 
   private preprocessImage(dataUrl: string): Promise<HTMLCanvasElement> {
-    return new Promise(resolve => {
+    return new Promise((resolve, reject) => {
       const img = new Image();
+      const timeout = setTimeout(() => reject(new Error('Timeout al cargar imagen')), 15000);
+      img.onerror = () => { clearTimeout(timeout); reject(new Error('Error al cargar imagen')); };
       img.onload = () => {
-        const tmp = document.createElement('canvas');
-        tmp.width = img.width; tmp.height = img.height;
-        const tctx = tmp.getContext('2d')!;
-        tctx.drawImage(img, 0, 0);
-        const { x, y, w, h } = this.autoCrop(tctx, img.width, img.height);
-        const scale = Math.max(1, Math.min(4, 2000 / Math.max(w, h)));
-        const canvas = document.createElement('canvas');
-        canvas.width = w * scale; canvas.height = h * scale;
-        const ctx = canvas.getContext('2d')!;
-        ctx.filter = 'grayscale(100%) contrast(170%) brightness(115%)';
-        ctx.drawImage(tmp, x, y, w, h, 0, 0, canvas.width, canvas.height);
-        const id = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const d = id.data;
-        for (let i = 0; i < d.length; i += 4) {
-          const c = Math.min(255, Math.max(0, (d[i] - 128) * 1.5 + 128));
-          d[i] = d[i+1] = d[i+2] = c;
+        clearTimeout(timeout);
+        try {
+          const tmp = document.createElement('canvas');
+          tmp.width = img.width; tmp.height = img.height;
+          const tctx = tmp.getContext('2d')!;
+          tctx.drawImage(img, 0, 0);
+
+          let x = 0, y = 0, w = img.width, h = img.height;
+          const crop = this.autoCrop(tctx, img.width, img.height);
+          if (crop.w > 10 && crop.h > 10) {
+            x = crop.x; y = crop.y; w = crop.w; h = crop.h;
+          }
+
+          const scale = Math.max(1, Math.min(4, 2000 / Math.max(w, h)));
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.round(w * scale); canvas.height = Math.round(h * scale);
+          const ctx = canvas.getContext('2d')!;
+          ctx.filter = 'grayscale(100%) contrast(170%) brightness(115%)';
+          ctx.drawImage(tmp, x, y, w, h, 0, 0, canvas.width, canvas.height);
+          const id = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const d = id.data;
+          for (let i = 0; i < d.length; i += 4) {
+            const c = Math.min(255, Math.max(0, (d[i] - 128) * 1.5 + 128));
+            d[i] = d[i+1] = d[i+2] = c;
+          }
+          ctx.putImageData(id, 0, 0);
+          resolve(canvas);
+        } catch (e) {
+          reject(e);
         }
-        ctx.putImageData(id, 0, 0);
-        resolve(canvas);
       };
       img.src = dataUrl;
     });
