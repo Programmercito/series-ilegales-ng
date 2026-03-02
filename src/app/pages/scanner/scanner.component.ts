@@ -109,8 +109,14 @@ export class ScannerComponent implements OnInit, OnDestroy {
     const canvas = this.cropCanvasRef?.nativeElement;
     const img    = this.cropImgRef?.nativeElement;
     if (!canvas || !img) return;
+    // Match canvas internal resolution to image displayed size
     canvas.width  = img.offsetWidth;
     canvas.height = img.offsetHeight;
+    // Position canvas exactly over the image (not the container)
+    canvas.style.width  = img.offsetWidth + 'px';
+    canvas.style.height = img.offsetHeight + 'px';
+    canvas.style.left   = img.offsetLeft + 'px';
+    canvas.style.top    = img.offsetTop + 'px';
     this.drawCropOverlay();
   }
 
