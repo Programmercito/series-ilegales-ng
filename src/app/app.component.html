@@ -46,4 +46,28 @@
     <p class="footer-love">Hecho con ❤️ por <a href="https://devcito.org" target="_blank" rel="noopener">devcito</a></p>
   </footer>
 
+  <!-- DISCLAIMER MODAL -->
+  @if (showDisclaimer()) {
+    <div class="disclaimer-overlay" (click)="acceptDisclaimer()">
+      <div class="disclaimer-modal" (click)="$event.stopPropagation()">
+        <div class="disclaimer-modal-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
+        <h2 class="disclaimer-modal-title">Aviso Importante</h2>
+        <p class="disclaimer-modal-text">
+          El responsable de admitir o rechazar finalmente el billete es <strong>el usuario</strong>.
+          Esta aplicación <strong>no tiene garantía ni soporte</strong> y es <strong>totalmente gratuita</strong>.
+          Úsela bajo su propia responsabilidad.
+        </p>
+        <button class="btn-disclaimer-accept" (click)="acceptDisclaimer()">
+          Entendido
+        </button>
+      </div>
+    </div>
+  }
+
 </div>

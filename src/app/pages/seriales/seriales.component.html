@@ -58,12 +58,12 @@
               </tr>
             </thead>
             <tbody>
-              @for (r of group.ranges; track r.del; let i = $index) {
+              @for (r of group.ranges; track r.s; let i = $index) {
                 <tr>
                   <td class="col-num muted">{{ i + 1 }}</td>
-                  <td class="serial-cell">{{ formatNum(r.del) }}</td>
-                  <td class="serial-cell">{{ formatNum(r.al) }}</td>
-                  <td class="col-qty qty-cell">{{ formatNum(r.al - r.del + 1) }}</td>
+                  <td class="serial-cell">{{ formatNum(r.s) }}</td>
+                  <td class="serial-cell">{{ formatNum(r.e) }}</td>
+                  <td class="col-qty qty-cell">{{ formatNum(r.e - r.s + 1) }}</td>
                 </tr>
               }
             </tbody>

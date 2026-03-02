@@ -1,5 +1,29 @@
 <main class="main-content">
 
+  @if (status() === 'select-denom') {
+    <div class="scan-card scan-card--denom">
+      <div class="denom-select-header">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="denom-select-icon">
+          <rect x="2" y="4" width="20" height="16" rx="2"/>
+          <path d="M2 10h20"/>
+        </svg>
+        <p class="denom-select-title">¿Qué billete vas a verificar?</p>
+        <p class="denom-select-hint">Selecciona la denominación del billete</p>
+      </div>
+      <div class="denom-buttons">
+        <button class="btn btn-denom" (click)="selectDenom(10)">
+          <span class="denom-value">Bs. 10</span>
+        </button>
+        <button class="btn btn-denom" (click)="selectDenom(20)">
+          <span class="denom-value">Bs. 20</span>
+        </button>
+        <button class="btn btn-denom" (click)="selectDenom(50)">
+          <span class="denom-value">Bs. 50</span>
+        </button>
+      </div>
+    </div>
+  }
+
   @if (status() === 'idle') {
     <div class="scan-tip">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="scan-tip-icon">
@@ -223,6 +247,33 @@
           <span class="result-label invalid">INVALIDO</span>
           @if (errorMsg()) { <span class="result-sub">{{ errorMsg() }}</span> }
         </div>
+
+        @if (matchedRange()) {
+          <div class="matched-range-card">
+            <div class="matched-range-header">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="matched-range-icon">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+              <span class="matched-range-title">Rango ilegal encontrado</span>
+            </div>
+            <div class="matched-range-body">
+              <div class="matched-range-row">
+                <span class="matched-range-label">Desde:</span>
+                <span class="matched-range-value">{{ formatNum(matchedRange()!.s) }}</span>
+              </div>
+              <div class="matched-range-row">
+                <span class="matched-range-label">Hasta:</span>
+                <span class="matched-range-value">{{ formatNum(matchedRange()!.e) }}</span>
+              </div>
+              <div class="matched-range-row">
+                <span class="matched-range-label">Cantidad:</span>
+                <span class="matched-range-value">{{ formatNum(matchedRange()!.e - matchedRange()!.s + 1) }} billetes</span>
+              </div>
+            </div>
+          </div>
+        }
       }
 
       @if (isValid() === null) {
@@ -254,6 +305,46 @@
             </svg>
             Toca para corregir
           </span>
+        </div>
+      }
+
+      @if (denomRanges().length > 0) {
+        <div class="ranges-dropdown">
+          <button class="ranges-dropdown-toggle" (click)="toggleRanges()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ranges-toggle-icon">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <path d="M3 9h18M3 15h18M9 3v18"/>
+            </svg>
+            <span>Ver todos los rangos ilegales — Bs. {{ selectedDenom() }}</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 class="ranges-chevron" [class.ranges-chevron--open]="showRangesOpen()">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+          @if (showRangesOpen()) {
+            <div class="ranges-dropdown-body">
+              <table class="ranges-mini-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Desde</th>
+                    <th>Hasta</th>
+                    <th class="col-qty">Cantidad</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (r of denomRanges(); track r.s; let i = $index) {
+                    <tr [class.matched-row]="matchedRange() && matchedRange()!.s === r.s">
+                      <td class="muted">{{ i + 1 }}</td>
+                      <td>{{ formatNum(r.s) }}</td>
+                      <td>{{ formatNum(r.e) }}</td>
+                      <td class="col-qty">{{ formatNum(r.e - r.s + 1) }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
         </div>
       }
 

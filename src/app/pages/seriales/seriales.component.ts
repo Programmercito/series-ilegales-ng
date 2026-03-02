@@ -1,13 +1,12 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-interface SeriesRange { del: number; al: number; }
-interface SeriesData  { [key: string]: SeriesRange[]; }
+interface FormatEntry { s: number; e: number; denom: number; p: number; }
 
 interface DenomGroup {
   label: string;
   key: string;
-  ranges: SeriesRange[];
+  ranges: FormatEntry[];
   total: number;
 }
 
@@ -25,29 +24,28 @@ export class SerialesComponent implements OnInit {
 
   async ngOnInit() {
     try {
-      const res = await fetch('/seriesb.json');
-      const data: SeriesData = await res.json();
+      const res = await fetch('/formatbcb.json');
+      const data: FormatEntry[] = await res.json();
 
-      const denomOrder = ['Bs10', 'Bs20', 'Bs50'];
-      const denomLabels: Record<string, string> = {
-        'Bs10': 'Bs. 10',
-        'Bs20': 'Bs. 20',
-        'Bs50': 'Bs. 50',
-      };
+      const denomOrder = [10, 20, 50];
+      const grouped = new Map<number, FormatEntry[]>();
+      for (const entry of data) {
+        if (!grouped.has(entry.denom)) grouped.set(entry.denom, []);
+        grouped.get(entry.denom)!.push(entry);
+      }
 
       const built: DenomGroup[] = [];
-      for (const key of denomOrder) {
-        if (!data[key]) continue;
-        const ranges = data[key];
-        const total = ranges.reduce((acc, r) => acc + (r.al - r.del + 1), 0);
-        built.push({ label: denomLabels[key] ?? key, key, ranges, total });
+      for (const denom of denomOrder) {
+        const ranges = grouped.get(denom);
+        if (!ranges) continue;
+        const total = ranges.reduce((acc, r) => acc + (r.e - r.s + 1), 0);
+        built.push({ label: `Bs. ${denom}`, key: `Bs${denom}`, ranges, total });
       }
       // include any denomination not in the ordered list
-      for (const key of Object.keys(data)) {
-        if (denomOrder.includes(key)) continue;
-        const ranges = data[key];
-        const total = ranges.reduce((acc, r) => acc + (r.al - r.del + 1), 0);
-        built.push({ label: key.replace('Bs', 'Bs. '), key, ranges, total });
+      for (const [denom, ranges] of grouped) {
+        if (denomOrder.includes(denom)) continue;
+        const total = ranges.reduce((acc, r) => acc + (r.e - r.s + 1), 0);
+        built.push({ label: `Bs. ${denom}`, key: `Bs${denom}`, ranges, total });
       }
 
       this.groups.set(built);

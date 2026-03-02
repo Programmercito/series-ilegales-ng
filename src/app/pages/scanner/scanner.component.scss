@@ -708,3 +708,242 @@ $yellow:     #ffc800;
   .scan-hint { font-size: .88rem; }
   .scan-hint-sub { font-size: .72rem; }
 }
+
+// ── Denomination Selector ────────────────────────────────────────────
+.scan-card--denom {
+  text-align: center;
+}
+
+.denom-select-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .5rem;
+}
+
+.denom-select-icon {
+  width: 40px;
+  height: 40px;
+  color: $green;
+}
+
+.denom-select-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: $text;
+}
+
+.denom-select-hint {
+  font-size: .82rem;
+  color: $muted;
+}
+
+.denom-buttons {
+  display: flex;
+  gap: .75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn-denom {
+  flex: 1;
+  min-width: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .3rem;
+  padding: 1.25rem 1rem;
+  background: $surface2;
+  border: 2px solid $border;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all .2s;
+  -webkit-tap-highlight-color: transparent;
+
+  &:hover {
+    border-color: $green;
+    background: rgba($green, .08);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(72,199,142,.15);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.denom-value {
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: $green;
+  letter-spacing: .02em;
+}
+
+// ── Matched Range Card ──────────────────────────────────────────────
+.matched-range-card {
+  background: rgba($red, .06);
+  border: 1px solid rgba($red, .25);
+  border-radius: 14px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: .65rem;
+}
+
+.matched-range-header {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.matched-range-icon {
+  width: 20px;
+  height: 20px;
+  color: $red;
+  flex-shrink: 0;
+}
+
+.matched-range-title {
+  font-size: .88rem;
+  font-weight: 700;
+  color: $red;
+}
+
+.matched-range-body {
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+}
+
+.matched-range-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: .3rem .5rem;
+  border-radius: 8px;
+  background: rgba($red, .04);
+}
+
+.matched-range-label {
+  font-size: .8rem;
+  color: $muted;
+  font-weight: 600;
+}
+
+.matched-range-value {
+  font-size: .88rem;
+  color: $text;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+// ── Ranges Dropdown ─────────────────────────────────────────────────
+.ranges-dropdown {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid $border;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.ranges-dropdown-toggle {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  padding: .75rem 1rem;
+  background: $surface2;
+  border: none;
+  cursor: pointer;
+  color: $muted;
+  font-size: .82rem;
+  font-weight: 600;
+  transition: all .15s;
+  -webkit-tap-highlight-color: transparent;
+
+  &:hover {
+    color: $text;
+    background: lighten($surface2, 3%);
+  }
+
+  span { flex: 1; text-align: left; }
+}
+
+.ranges-toggle-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: $green;
+}
+
+.ranges-chevron {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  transition: transform .2s;
+
+  &--open {
+    transform: rotate(180deg);
+  }
+}
+
+.ranges-dropdown-body {
+  border-top: 1px solid $border;
+  max-height: 300px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.ranges-mini-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .8rem;
+  font-variant-numeric: tabular-nums;
+
+  thead tr {
+    background: rgba($border, .3);
+  }
+
+  th {
+    padding: .5rem .7rem;
+    text-align: left;
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: $muted;
+    font-weight: 700;
+    white-space: nowrap;
+    border-bottom: 1px solid $border;
+  }
+
+  td {
+    padding: .45rem .7rem;
+    color: $text;
+    border-bottom: 1px solid rgba($border, .4);
+    white-space: nowrap;
+  }
+
+  .col-qty {
+    text-align: right;
+  }
+
+  .muted {
+    color: $muted !important;
+  }
+
+  tbody tr {
+    transition: background .15s;
+
+    &:hover { background: rgba($green, .04); }
+    &:last-child td { border-bottom: none; }
+  }
+}
+
+.matched-row {
+  background: rgba($red, .1) !important;
+
+  td {
+    color: $red !important;
+    font-weight: 700;
+  }
+}

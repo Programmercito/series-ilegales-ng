@@ -3,10 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { createWorker, Worker, PSM } from 'tesseract.js';
 
-interface SeriesRange { del: number; al: number; }
-interface SeriesData { [key: string]: SeriesRange[]; }
+interface FormatEntry { s: number; e: number; denom: number; p: number; }
 
-type ScanStatus = 'idle' | 'loading' | 'cropping' | 'scanning' | 'confirming' | 'done' | 'error';
+type ScanStatus = 'select-denom' | 'idle' | 'loading' | 'cropping' | 'scanning' | 'confirming' | 'done' | 'error';
 
 interface Rect { x1: number; y1: number; x2: number; y2: number; }
 
@@ -23,7 +22,8 @@ export class ScannerComponent implements OnInit, OnDestroy {
   @ViewChild('cropCanvas') cropCanvasRef!: ElementRef<HTMLCanvasElement>;
   @ViewChild('cropImg')    cropImgRef!: ElementRef<HTMLImageElement>;
 
-  status           = signal<ScanStatus>('idle');
+  status           = signal<ScanStatus>('select-denom');
+  selectedDenom    = signal<number | null>(null);
   progress         = signal<number>(0);
   progressMsg      = signal<string>('Iniciando...');
   imagePreview     = signal<string | null>(null);
@@ -39,7 +39,12 @@ export class ScannerComponent implements OnInit, OnDestroy {
   rawOcrText       = signal<string>('');
   allCandidates    = signal<Array<{ num: number; letter: string }>>([]);
 
-  private seriesData: SeriesData | null = null;
+  // Result details
+  matchedRange     = signal<FormatEntry | null>(null);
+  denomRanges      = signal<FormatEntry[]>([]);
+  showRangesOpen   = signal<boolean>(false);
+
+  private seriesData: FormatEntry[] | null = null;
   private worker: Worker | null = null;
   private workerReady = false;
 
@@ -52,8 +57,13 @@ export class ScannerComponent implements OnInit, OnDestroy {
   }
 
   private async loadSeriesData() {
-    const res = await fetch('/seriesb.json');
+    const res = await fetch('/formatbcb.json');
     this.seriesData = await res.json();
+  }
+
+  selectDenom(denom: number) {
+    this.selectedDenom.set(denom);
+    this.status.set('idle');
   }
 
   private async initWorker() {
@@ -316,22 +326,33 @@ export class ScannerComponent implements OnInit, OnDestroy {
 
     this.detectedSerial.set(`${num} ${letter}`);
 
+    // Populate denomination ranges for reference (always)
+    const denom = this.selectedDenom();
+    if (this.seriesData && denom) {
+      this.denomRanges.set(this.seriesData.filter(e => e.denom === denom));
+    }
+
     if (letter !== 'B') {
+      this.showRangesOpen.set(false);
       this.errorMsg.set(`Serie ${letter} — no pertenece a los billetes ilegales`);
       this.status.set('done');
       this.isValid.set(true);
       return;
     }
 
-    const illegalDenom = this.checkInRanges(num);
-    if (illegalDenom) {
-      this.detectedDenom.set(illegalDenom);
-      this.errorMsg.set(`Registrado como billete Serie B ilegalizado (${illegalDenom})`);
+    const result = this.checkInRanges(num);
+    if (result) {
+      this.matchedRange.set(result);
+      this.detectedDenom.set(`Bs. ${result.denom}`);
+      this.errorMsg.set(`Registrado como billete Serie B ilegalizado (Bs. ${result.denom})`);
+      this.showRangesOpen.set(true);
       this.status.set('done');
       this.isValid.set(false);
     } else {
+      this.matchedRange.set(null);
       this.detectedDenom.set(null);
       this.errorMsg.set('Serie B — número no figura en registros ilegalizados');
+      this.showRangesOpen.set(false);
       this.status.set('done');
       this.isValid.set(true);
     }
@@ -358,11 +379,21 @@ export class ScannerComponent implements OnInit, OnDestroy {
     this.status.set('confirming');
   }
 
-  private checkInRanges(num: number): string | null {
+  toggleRanges() {
+    this.showRangesOpen.set(!this.showRangesOpen());
+  }
+
+  formatNum(n: number): string {
+    return n.toLocaleString('es-BO');
+  }
+
+  private checkInRanges(num: number): FormatEntry | null {
     if (!this.seriesData) return null;
-    for (const [denom, ranges] of Object.entries(this.seriesData))
-      for (const r of ranges)
-        if (num >= r.del && num <= r.al) return denom.replace('Bs', 'Bs. ');
+    const denom = this.selectedDenom();
+    if (!denom) return null;
+    for (const entry of this.seriesData)
+      if (entry.denom === denom && num >= entry.s && num <= entry.e)
+        return entry;
     return null;
   }
 
@@ -441,11 +472,15 @@ export class ScannerComponent implements OnInit, OnDestroy {
     this.editSerialLetter.set('');
     this.rawOcrText.set('');
     this.allCandidates.set([]);
+    this.matchedRange.set(null);
+    this.denomRanges.set([]);
+    this.showRangesOpen.set(false);
   }
 
   reset() {
     this.resetState();
-    this.status.set('idle');
+    this.selectedDenom.set(null);
+    this.status.set('select-denom');
     this.imagePreview.set(null);
     if (this.fileInput) this.fileInput.nativeElement.value = '';
     if (this.galleryInput) this.galleryInput.nativeElement.value = '';
