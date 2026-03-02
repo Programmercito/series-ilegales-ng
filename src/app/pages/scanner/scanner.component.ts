@@ -18,6 +18,7 @@ interface Rect { x1: number; y1: number; x2: number; y2: number; }
 })
 export class ScannerComponent implements OnInit, OnDestroy {
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+  @ViewChild('galleryInput') galleryInput!: ElementRef<HTMLInputElement>;
   @ViewChild('cropCanvas') cropCanvasRef!: ElementRef<HTMLCanvasElement>;
   @ViewChild('cropImg')    cropImgRef!: ElementRef<HTMLImageElement>;
 
@@ -70,6 +71,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
 
   // ── File handling ─────────────────────────────────────────────────
   triggerFileInput() { this.fileInput.nativeElement.click(); }
+  triggerGalleryInput() { this.galleryInput.nativeElement.click(); }
 
   async onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
@@ -350,6 +352,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
     this.status.set('idle');
     this.imagePreview.set(null);
     if (this.fileInput) this.fileInput.nativeElement.value = '';
+    if (this.galleryInput) this.galleryInput.nativeElement.value = '';
   }
 
   ngOnDestroy() { this.worker?.terminate(); }

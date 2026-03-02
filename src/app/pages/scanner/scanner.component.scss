@@ -131,6 +131,23 @@ $yellow:     #ffc800;
   &:active:not(:disabled) { transform: translateY(0); }
 }
 
+.btn-gallery {
+  flex: 1;
+  background: $surface2;
+  color: $muted;
+  font-size: .95rem;
+  padding: .8rem 1.75rem;
+  border: 1px solid $border;
+
+  &:hover:not(:disabled) {
+    background: lighten($surface2, 4%);
+    color: $text;
+    border-color: $green;
+    transform: translateY(-1px);
+  }
+  &:active:not(:disabled) { transform: translateY(0); }
+}
+
 .btn-crop-confirm {
   flex: 1;
   background: $green;
