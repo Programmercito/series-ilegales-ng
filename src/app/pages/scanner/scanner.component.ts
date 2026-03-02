@@ -234,23 +234,10 @@ export class ScannerComponent implements OnInit, OnDestroy {
     this.status.set('scanning');
     this.progress.set(0);
     try {
-      // Try multiple preprocessing strategies and merge candidates
-      const strategies = [
-        this.preprocessImage(dataUrl, 'binarize'),
-        this.preprocessImage(dataUrl, 'contrast'),
-        this.preprocessImage(dataUrl, 'invert'),
-      ];
-      const canvases = await Promise.all(strategies);
-
+      const preprocessed = await this.preprocessImage(dataUrl);
       if (!this.workerReady || !this.worker) await this.initWorker();
-
-      const allText: string[] = [];
-      for (const canvas of canvases) {
-        const result = await this.worker!.recognize(canvas);
-        allText.push(result.data.text);
-      }
-
-      this.extractAndConfirm(allText.join('\n'));
+      const result = await this.worker!.recognize(preprocessed);
+      this.extractAndConfirm(result.data.text);
     } catch {
       this.status.set('error');
       this.errorMsg.set('Error al procesar la imagen. Intente de nuevo.');
@@ -367,7 +354,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
     return null;
   }
 
-  private preprocessImage(dataUrl: string, strategy: 'binarize' | 'contrast' | 'invert'): Promise<HTMLCanvasElement> {
+  private preprocessImage(dataUrl: string): Promise<HTMLCanvasElement> {
     return new Promise(resolve => {
       const img = new Image();
       img.onload = () => {
@@ -376,74 +363,18 @@ export class ScannerComponent implements OnInit, OnDestroy {
         const tctx = tmp.getContext('2d')!;
         tctx.drawImage(img, 0, 0);
         const { x, y, w, h } = this.autoCrop(tctx, img.width, img.height);
-
-        // Scale up aggressively — small text needs at least 3x
-        const scale = Math.max(2, Math.min(5, 3000 / Math.max(w, h)));
+        const scale = Math.max(1, Math.min(4, 2000 / Math.max(w, h)));
         const canvas = document.createElement('canvas');
         canvas.width = w * scale; canvas.height = h * scale;
         const ctx = canvas.getContext('2d')!;
-
-        // Draw with initial greyscale
-        ctx.filter = 'grayscale(100%)';
+        ctx.filter = 'grayscale(100%) contrast(170%) brightness(115%)';
         ctx.drawImage(tmp, x, y, w, h, 0, 0, canvas.width, canvas.height);
-
         const id = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const d = id.data;
-
-        if (strategy === 'binarize') {
-          // Adaptive Otsu-like binarization
-          const histogram = new Array(256).fill(0);
-          for (let i = 0; i < d.length; i += 4) histogram[d[i]]++;
-          const totalPixels = d.length / 4;
-          let sum = 0;
-          for (let i = 0; i < 256; i++) sum += i * histogram[i];
-          let sumB = 0, wB = 0, wF = 0, maxVariance = 0, threshold = 128;
-          for (let t = 0; t < 256; t++) {
-            wB += histogram[t];
-            if (wB === 0) continue;
-            wF = totalPixels - wB;
-            if (wF === 0) break;
-            sumB += t * histogram[t];
-            const mB = sumB / wB;
-            const mF = (sum - sumB) / wF;
-            const variance = wB * wF * (mB - mF) * (mB - mF);
-            if (variance > maxVariance) { maxVariance = variance; threshold = t; }
-          }
-          for (let i = 0; i < d.length; i += 4) {
-            const v = d[i] > threshold ? 255 : 0;
-            d[i] = d[i+1] = d[i+2] = v;
-          }
-        } else if (strategy === 'contrast') {
-          // High contrast + sharpen
-          for (let i = 0; i < d.length; i += 4) {
-            const c = Math.min(255, Math.max(0, (d[i] - 128) * 2.5 + 128));
-            d[i] = d[i+1] = d[i+2] = c;
-          }
-        } else if (strategy === 'invert') {
-          // Otsu binarize but inverted (for dark backgrounds)
-          const histogram = new Array(256).fill(0);
-          for (let i = 0; i < d.length; i += 4) histogram[d[i]]++;
-          const totalPixels = d.length / 4;
-          let sum = 0;
-          for (let i = 0; i < 256; i++) sum += i * histogram[i];
-          let sumB = 0, wB = 0, wF = 0, maxVariance = 0, threshold = 128;
-          for (let t = 0; t < 256; t++) {
-            wB += histogram[t];
-            if (wB === 0) continue;
-            wF = totalPixels - wB;
-            if (wF === 0) break;
-            sumB += t * histogram[t];
-            const mB = sumB / wB;
-            const mF = (sum - sumB) / wF;
-            const variance = wB * wF * (mB - mF) * (mB - mF);
-            if (variance > maxVariance) { maxVariance = variance; threshold = t; }
-          }
-          for (let i = 0; i < d.length; i += 4) {
-            const v = d[i] > threshold ? 0 : 255;
-            d[i] = d[i+1] = d[i+2] = v;
-          }
+        for (let i = 0; i < d.length; i += 4) {
+          const c = Math.min(255, Math.max(0, (d[i] - 128) * 1.5 + 128));
+          d[i] = d[i+1] = d[i+2] = c;
         }
-
         ctx.putImageData(id, 0, 0);
         resolve(canvas);
       };
