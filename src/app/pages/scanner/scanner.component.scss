@@ -852,6 +852,15 @@ $yellow:     #ffc800;
   gap: .5rem;
 }
 
+/* new style for expected denomination text */
+.result-denom-info {
+  font-size: .9rem;
+  color: $text;
+  margin-top: -.4rem;
+  margin-bottom: .6rem;
+  text-align: center;
+}
+
 .matched-range-icon {
   width: 20px;
   height: 20px;

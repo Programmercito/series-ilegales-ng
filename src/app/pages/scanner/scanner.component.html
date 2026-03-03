@@ -227,6 +227,9 @@
             </svg>
           </div>
           <span class="result-label valid">VALIDO</span>
+          @if (selectedDenom()) {
+            <span class="result-denom-info">Billete esperado: Bs. {{ selectedDenom() }}</span>
+          }
           @if (errorMsg()) { <span class="result-sub">{{ errorMsg() }}</span> }
         </div>
       }
@@ -240,6 +243,9 @@
             </svg>
           </div>
           <span class="result-label invalid">INVALIDO</span>
+          @if (selectedDenom()) {
+            <span class="result-denom-info">Billete esperado: Bs. {{ selectedDenom() }}</span>
+          }
           @if (errorMsg()) { <span class="result-sub">{{ errorMsg() }}</span> }
         </div>
 
