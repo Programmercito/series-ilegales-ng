@@ -212,6 +212,51 @@ $yellow:     #ffc800;
   gap: .7rem;
 }
 
+// ── Crop tip banner (idle) ─────────────────────────────────────────
+.crop-tip-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: .7rem;
+  padding: .7rem .85rem;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba($green, .08), rgba($green, .03));
+  border: 1px solid rgba($green, .18);
+  animation: cropTipPulse 3s ease-in-out infinite;
+}
+
+@keyframes cropTipPulse {
+  0%, 100% { border-color: rgba($green, .18); }
+  50%      { border-color: rgba($green, .38); }
+}
+
+.crop-tip-icon-wrap {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: rgba($green, .12);
+  color: $green;
+}
+
+.crop-tip-svg {
+  width: 18px;
+  height: 18px;
+}
+
+.crop-tip-text {
+  font-size: .78rem;
+  line-height: 1.45;
+  color: $muted;
+
+  strong {
+    color: $green;
+    font-weight: 600;
+  }
+}
+
 .crop-header {
   text-align: center;
 }
@@ -226,6 +271,13 @@ $yellow:     #ffc800;
   font-size: .78rem;
   color: $muted;
   margin-top: .2rem;
+}
+
+.crop-extra-hint {
+  font-size: .78rem;
+  color: $muted;
+  text-align: center;
+  margin-top: .4rem;
 }
 
 .crop-container {

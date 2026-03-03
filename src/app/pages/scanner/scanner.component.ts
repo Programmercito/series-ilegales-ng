@@ -127,6 +127,10 @@ export class ScannerComponent implements OnInit, OnDestroy {
     canvas.style.height = img.offsetHeight + 'px';
     canvas.style.left   = img.offsetLeft + 'px';
     canvas.style.top    = img.offsetTop + 'px';
+    // Auto-select entire image so user sees it pre-cropped
+    const pad = 4;
+    this.cropRect = { x1: pad, y1: pad, x2: canvas.width - pad, y2: canvas.height - pad };
+    this.hasCropSelection.set(true);
     this.drawCropOverlay();
   }
 
@@ -217,13 +221,29 @@ export class ScannerComponent implements OnInit, OnDestroy {
 
     ctx.setLineDash([]);
     ctx.fillStyle = '#48c78e';
-    const hs = 6;
+    // increase handle size so corners are more visible when cropping
+    const hs = 12;
     [[rx, ry], [rx+rw, ry], [rx, ry+rh], [rx+rw, ry+rh]].forEach(([cx, cy]) => {
       ctx.fillRect(cx - hs/2, cy - hs/2, hs, hs);
     });
   }
 
+  selectionIsWhole(): boolean {
+    // consider selection whole if it touches all four edges within a small tolerance
+    const canvas = this.cropCanvasRef?.nativeElement;
+    if (!canvas) return false;
+    const { x1, y1, x2, y2 } = this.cropRect;
+    const tol = 8;
+    return x1 <= tol && y1 <= tol && x2 >= canvas.width - tol && y2 >= canvas.height - tol;
+  }
+
   async confirmCrop() {
+    // if the user has essentially selected the entire image, just scan full preview
+    if (this.selectionIsWhole()) {
+      await this.runScan(this.imagePreview()!);
+      return;
+    }
+
     const img    = this.cropImgRef.nativeElement;
     const canvas = this.cropCanvasRef.nativeElement;
     const scaleX = img.naturalWidth  / canvas.width;
