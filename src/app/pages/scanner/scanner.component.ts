@@ -264,7 +264,10 @@ export class ScannerComponent implements OnInit, OnDestroy {
     out.width  = rw;
     out.height = rh;
     out.getContext('2d')!.drawImage(img, rx, ry, rw, rh, 0, 0, rw, rh);
-    await this.runScan(out.toDataURL('image/png'));
+    const croppedDataUrl = out.toDataURL('image/png');
+    // Update preview to show the cropped region enlarged
+    this.imagePreview.set(croppedDataUrl);
+    await this.runScan(croppedDataUrl);
   }
 
   async skipCrop() {

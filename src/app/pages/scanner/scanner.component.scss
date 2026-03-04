@@ -285,7 +285,7 @@ $yellow:     #ffc800;
   border-radius: 10px;
   overflow: hidden;
   background: #000;
-  max-height: 320px;
+  max-height: 520px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -294,7 +294,7 @@ $yellow:     #ffc800;
 .crop-img {
   display: block;
   max-width: 100%;
-  max-height: 320px;
+  max-height: 520px;
   object-fit: contain;
 }
 
@@ -418,13 +418,14 @@ $yellow:     #ffc800;
   border-radius: 12px;
   overflow: hidden;
   background: #000;
-  max-height: 180px;
+  max-height: 340px;
   display: flex;
   justify-content: center;
 }
 
 .preview-thumb {
-  max-height: 180px;
+  max-height: 340px;
+  width: 100%;
   object-fit: contain;
   opacity: .8;
 }
@@ -749,8 +750,10 @@ $yellow:     #ffc800;
   .result-label { font-size: 1.75rem; }
   .result-icon { width: 60px; height: 60px; }
   .preview-container { max-height: 200px; }
-  .preview-thumb-row { max-height: 160px; }
-  .preview-thumb { max-height: 160px; }
+  .crop-container { max-height: 420px; }
+  .crop-img { max-height: 420px; }
+  .preview-thumb-row { max-height: 280px; }
+  .preview-thumb { max-height: 280px; }
   .serial-display { padding: .85rem 1rem; }
 }
 
