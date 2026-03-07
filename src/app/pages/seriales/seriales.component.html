@@ -1,82 +1,200 @@
 <main class="ser-main">
 
   @if (loading()) {
-    <div class="ser-loading">
-      <div class="ser-spinner"></div>
-      <p>Cargando registros...</p>
-    </div>
+  <div class="ser-loading">
+    <div class="ser-spinner"></div>
+    <p>Cargando registros...</p>
+  </div>
   }
 
   @if (error()) {
-    <div class="ser-error">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="10"/>
-        <line x1="12" y1="8" x2="12" y2="12"/>
-        <line x1="12" y1="16" x2="12.01" y2="16"/>
-      </svg>
-      {{ error() }}
-    </div>
+  <div class="ser-error">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="8" x2="12" y2="12" />
+      <line x1="12" y1="16" x2="12.01" y2="16" />
+    </svg>
+    {{ error() }}
+  </div>
   }
 
   @if (!loading() && !error()) {
 
-    <!-- Summary stats -->
-    <div class="ser-stats">
-      <div class="stat-card">
-        <span class="stat-value">{{ totalRanges() }}</span>
-        <span class="stat-label">Rangos registrados</span>
+  <!-- Summary stats -->
+  <div class="ser-stats">
+    <div class="stat-card">
+      <span class="stat-value">{{ totalRanges() }}</span>
+      <span class="stat-label">Rangos BCB v2</span>
+    </div>
+    <div class="stat-card stat-card--red">
+      <span class="stat-value">{{ formatNum(totalIllegal()) }}</span>
+      <span class="stat-label">Billetes ilegalizados</span>
+    </div>
+    <div class="stat-card stat-card--orange">
+      <span class="stat-value">{{ totalEspecialEntries() }}</span>
+      <span class="stat-label">Sub-series especiales</span>
+    </div>
+  </div>
+
+  <!-- Denomination groups -->
+  @for (group of groups(); track group.key) {
+  <section class="denom-section">
+
+    <div class="denom-header">
+      <div class="denom-title-row">
+        <span class="denom-badge">{{ group.label }}</span>
+        <h2 class="denom-title">Serie B — Ilegalizados</h2>
       </div>
-      <div class="stat-card stat-card--red">
-        <span class="stat-value">{{ formatNum(totalIllegal()) }}</span>
-        <span class="stat-label">Billetes ilegalizados</span>
+      <div class="denom-meta">
+        <span class="denom-count">{{ group.ranges.length }} rangos</span>
+        <span class="denom-total">{{ formatNum(group.total) }} billetes</span>
       </div>
     </div>
 
-    <!-- Denomination groups -->
-    @for (group of groups(); track group.key) {
-      <section class="denom-section">
+    <div class="ranges-table-wrap">
+      <table class="ranges-table">
+        <thead>
+          <tr>
+            <th class="col-num">#</th>
+            <th>Desde</th>
+            <th>Hasta</th>
+            <th class="col-qty">Cantidad</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of group.ranges; track r.s; let i = $index) {
+          <tr>
+            <td class="col-num muted">{{ i + 1 }}</td>
+            <td class="serial-cell">{{ formatNum(r.s) }}</td>
+            <td class="serial-cell">{{ formatNum(r.e) }}</td>
+            <td class="col-qty qty-cell">{{ formatNum(r.e - r.s + 1) }}</td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
 
-        <div class="denom-header">
-          <div class="denom-title-row">
-            <span class="denom-badge">{{ group.label }}</span>
-            <h2 class="denom-title">Serie B — Ilegalizados</h2>
-          </div>
-          <div class="denom-meta">
-            <span class="denom-count">{{ group.ranges.length }} rangos</span>
-            <span class="denom-total">{{ formatNum(group.total) }} billetes</span>
-          </div>
-        </div>
+    <!-- Sub-series especiales para esta denominación -->
+    @if (group.especiales.length > 0) {
+    <div class="especial-section">
+      <div class="especial-section-header">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="especial-section-icon">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+        <span class="especial-section-title">Sub-series especiales (verificación extendida)</span>
+      </div>
+      <p class="especial-section-desc">
+        Los billetes en estos rangos requieren verificación adicional.
+        No todos los números dentro del rango son inválidos.
+      </p>
 
-        <div class="ranges-table-wrap">
-          <table class="ranges-table">
-            <thead>
-              <tr>
-                <th class="col-num">#</th>
-                <th>Desde</th>
-                <th>Hasta</th>
-                <th class="col-qty">Cantidad</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (r of group.ranges; track r.s; let i = $index) {
-                <tr>
-                  <td class="col-num muted">{{ i + 1 }}</td>
-                  <td class="serial-cell">{{ formatNum(r.s) }}</td>
-                  <td class="serial-cell">{{ formatNum(r.e) }}</td>
-                  <td class="col-qty qty-cell">{{ formatNum(r.e - r.s + 1) }}</td>
-                </tr>
+      <div class="especial-cards-list">
+        @for (card of group.especiales; track card.entry.key) {
+        <div class="especial-card">
+
+          <!-- Header de la card -->
+          <div class="especial-card-top">
+            <div class="especial-card-info">
+              <span class="especial-card-key">{{ card.entry.key }}</span>
+              <span class="especial-card-range-summary">
+                {{ formatNum(card.entry.min) }} — {{ formatNum(card.entry.max) }}
+              </span>
+            </div>
+            <button class="btn-toggle-sub" (click)="toggleEspecial(card)">
+              @if (card.loading) {
+              <div class="btn-toggle-spinner"></div>
+              } @else {
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-toggle-chevron"
+                [class.btn-toggle-chevron--open]="card.open">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
               }
-            </tbody>
-          </table>
-        </div>
+              {{ card.open ? 'Ocultar sub-rangos' : 'Ver sub-rangos' }}
+            </button>
+          </div>
 
-      </section>
+          <div class="especial-card-footer-meta">
+            {{ formatNum(card.entry.max - card.entry.min + 1) }} posiciones en el rango
+          </div>
+
+          <!-- Sub-rangos desplegables -->
+          @if (card.open) {
+          <div class="sub-ranges-panel">
+            @if (card.error) {
+            <div class="sub-ranges-error">{{ card.error }}</div>
+            } @else if (card.loading) {
+            <div class="sub-ranges-loading">
+              <div class="ser-spinner ser-spinner--sm"></div>
+              <span>Cargando sub-rangos...</span>
+            </div>
+            } @else {
+            <!-- Paginación superior -->
+            @if (totalPages(card) > 1) {
+            <div class="pagination">
+              <button class="pag-btn" [disabled]="card.page === 0" (click)="goPage(card, 0)">«</button>
+              <button class="pag-btn" [disabled]="card.page === 0" (click)="goPage(card, card.page - 1)">‹</button>
+              <span class="pag-info">Pág. {{ card.page + 1 }} / {{ totalPages(card) }} — {{ card.subRanges.length |
+                number }} rangos totales</span>
+              <button class="pag-btn" [disabled]="card.page >= totalPages(card) - 1"
+                (click)="goPage(card, card.page + 1)">›</button>
+              <button class="pag-btn" [disabled]="card.page >= totalPages(card) - 1"
+                (click)="goPage(card, totalPages(card) - 1)">»</button>
+            </div>
+            } @else {
+            <div class="pag-info pag-info--solo">{{ card.subRanges.length | number }} sub-rangos</div>
+            }
+
+            <table class="ranges-table ranges-table--sub">
+              <thead>
+                <tr>
+                  <th class="col-num">#</th>
+                  <th>Desde</th>
+                  <th>Hasta</th>
+                  <th class="col-qty">Cantidad</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (sr of pageRanges(card); track sr[0]; let i = $index) {
+                <tr>
+                  <td class="col-num muted">{{ card.page * card.pageSize + i + 1 }}</td>
+                  <td class="serial-cell">{{ formatNum(sr[0]) }}</td>
+                  <td class="serial-cell">{{ formatNum(sr[1]) }}</td>
+                  <td class="col-qty qty-cell">{{ formatNum(sr[1] - sr[0] + 1) }}</td>
+                </tr>
+                }
+              </tbody>
+            </table>
+
+            <!-- Paginación inferior -->
+            @if (totalPages(card) > 1) {
+            <div class="pagination pagination--bottom">
+              <button class="pag-btn" [disabled]="card.page === 0" (click)="goPage(card, card.page - 1)">‹
+                Anterior</button>
+              <span class="pag-info">{{ card.page + 1 }} / {{ totalPages(card) }}</span>
+              <button class="pag-btn" [disabled]="card.page >= totalPages(card) - 1"
+                (click)="goPage(card, card.page + 1)">Siguiente ›</button>
+            </div>
+            }
+            }
+          </div>
+          }
+
+        </div>
+        }
+      </div>
+
+    </div>
     }
 
-    <p class="ser-note">
-      Fuente: Banco Central de Bolivia — Resolución de Ilegalización Serie B.
-      Solo los billetes cuyo número de serie esté dentro de estos rangos son considerados ilegales.
-    </p>
+  </section>
+  }
+
+  <p class="ser-note">
+    Fuente: Banco Central de Bolivia — Resolución de Ilegalización Serie B.
+    Solo los billetes cuyo número de serie esté dentro de estos rangos son considerados ilegales.
+  </p>
 
   }
 

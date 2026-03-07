@@ -5,6 +5,21 @@ import { createWorker, Worker, PSM } from 'tesseract.js';
 
 interface FormatEntry { s: number; e: number; denom: number; p: number; }
 
+/** Entrada en especialv2.json */
+interface EspecialEntry {
+  key: string;
+  denom: number;
+  min: number;
+  max: number;
+  json: string; // 'serie20' | 'serie50'
+}
+
+/** Resultado de la búsqueda en el sub-JSON especial */
+interface EspecialHit {
+  entry: EspecialEntry;
+  subRange: [number, number]; // el sub-rango exacto [min, max] dentro del archivo JSON
+}
+
 type ScanStatus = 'select-denom' | 'idle' | 'loading' | 'cropping' | 'scanning' | 'confirming' | 'done' | 'error';
 
 interface Rect { x1: number; y1: number; x2: number; y2: number; }
@@ -20,31 +35,37 @@ export class ScannerComponent implements OnInit, OnDestroy {
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
   @ViewChild('galleryInput') galleryInput!: ElementRef<HTMLInputElement>;
   @ViewChild('cropCanvas') cropCanvasRef!: ElementRef<HTMLCanvasElement>;
-  @ViewChild('cropImg')    cropImgRef!: ElementRef<HTMLImageElement>;
+  @ViewChild('cropImg') cropImgRef!: ElementRef<HTMLImageElement>;
 
-  status           = signal<ScanStatus>('select-denom');
-  selectedDenom    = signal<number | null>(null);
-  progress         = signal<number>(0);
-  progressMsg      = signal<string>('Iniciando...');
-  imagePreview     = signal<string | null>(null);
-  isValid          = signal<boolean | null>(null);
-  detectedSerial   = signal<string | null>(null);
-  detectedDenom    = signal<string | null>(null);
-  errorMsg         = signal<string | null>(null);
+  status = signal<ScanStatus>('select-denom');
+  selectedDenom = signal<number | null>(null);
+  progress = signal<number>(0);
+  progressMsg = signal<string>('Iniciando...');
+  imagePreview = signal<string | null>(null);
+  isValid = signal<boolean | null>(null);
+  detectedSerial = signal<string | null>(null);
+  detectedDenom = signal<string | null>(null);
+  errorMsg = signal<string | null>(null);
   hasCropSelection = signal<boolean>(false);
 
   // Confirmation step: user can edit before verifying
-  editSerialNum    = signal<string>('');
+  editSerialNum = signal<string>('');
   editSerialLetter = signal<string>('');
-  rawOcrText       = signal<string>('');
-  allCandidates    = signal<Array<{ num: number; letter: string }>>([]);
+  rawOcrText = signal<string>('');
+  allCandidates = signal<Array<{ num: number; letter: string }>>([]);
 
   // Result details
-  matchedRange     = signal<FormatEntry | null>(null);
-  denomRanges      = signal<FormatEntry[]>([]);
-  showRangesOpen   = signal<boolean>(false);
+  matchedRange = signal<FormatEntry | null>(null);
+  denomRanges = signal<FormatEntry[]>([]);
+  showRangesOpen = signal<boolean>(false);
+
+  // Especial v2 data
+  especialRanges = signal<EspecialEntry[]>([]); // todos los rangos de especialv2
+  especialHit = signal<EspecialHit | null>(null); // hit en especial (para caso inválido)
+  especialForDenom = signal<EspecialEntry | null>(null); // rango especial que aplica a este billete (para caso válido)
 
   private seriesData: FormatEntry[] | null = null;
+  private especialData: EspecialEntry[] | null = null;
   private worker: Worker | null = null;
   private workerReady = false;
 
@@ -53,12 +74,17 @@ export class ScannerComponent implements OnInit, OnDestroy {
   private pendingFile: File | null = null;
 
   async ngOnInit() {
-    await Promise.all([this.loadSeriesData(), this.initWorker()]);
+    await Promise.all([this.loadSeriesData(), this.loadEspecialData(), this.initWorker()]);
   }
 
   private async loadSeriesData() {
-    const res = await fetch('/formatbcb.json');
+    const res = await fetch('/formatbcbv2.json');
     this.seriesData = await res.json();
+  }
+
+  private async loadEspecialData() {
+    const res = await fetch('/especialv2.json');
+    this.especialData = await res.json();
   }
 
   selectDenom(denom: number) {
@@ -117,17 +143,14 @@ export class ScannerComponent implements OnInit, OnDestroy {
   // ── Crop canvas ───────────────────────────────────────────────────
   onCropImgLoad() {
     const canvas = this.cropCanvasRef?.nativeElement;
-    const img    = this.cropImgRef?.nativeElement;
+    const img = this.cropImgRef?.nativeElement;
     if (!canvas || !img) return;
-    // Match canvas internal resolution to image displayed size
-    canvas.width  = img.offsetWidth;
+    canvas.width = img.offsetWidth;
     canvas.height = img.offsetHeight;
-    // Position canvas exactly over the image (not the container)
-    canvas.style.width  = img.offsetWidth + 'px';
+    canvas.style.width = img.offsetWidth + 'px';
     canvas.style.height = img.offsetHeight + 'px';
-    canvas.style.left   = img.offsetLeft + 'px';
-    canvas.style.top    = img.offsetTop + 'px';
-    // Auto-select entire image so user sees it pre-cropped
+    canvas.style.left = img.offsetLeft + 'px';
+    canvas.style.top = img.offsetTop + 'px';
     const pad = 4;
     this.cropRect = { x1: pad, y1: pad, x2: canvas.width - pad, y2: canvas.height - pad };
     this.hasCropSelection.set(true);
@@ -190,12 +213,12 @@ export class ScannerComponent implements OnInit, OnDestroy {
 
   private canvasPos(clientX: number, clientY: number): { x: number; y: number } {
     const canvas = this.cropCanvasRef.nativeElement;
-    const rect   = canvas.getBoundingClientRect();
-    const scaleX = canvas.width  / rect.width;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
     return {
-      x: Math.min(canvas.width,  Math.max(0, (clientX - rect.left) * scaleX)),
-      y: Math.min(canvas.height, Math.max(0, (clientY - rect.top)  * scaleY)),
+      x: Math.min(canvas.width, Math.max(0, (clientX - rect.left) * scaleX)),
+      y: Math.min(canvas.height, Math.max(0, (clientY - rect.top) * scaleY)),
     };
   }
 
@@ -215,21 +238,19 @@ export class ScannerComponent implements OnInit, OnDestroy {
     ctx.clearRect(rx, ry, rw, rh);
 
     ctx.strokeStyle = '#48c78e';
-    ctx.lineWidth   = 2;
+    ctx.lineWidth = 2;
     ctx.setLineDash([6, 3]);
     ctx.strokeRect(rx, ry, rw, rh);
 
     ctx.setLineDash([]);
     ctx.fillStyle = '#48c78e';
-    // increase handle size so corners are more visible when cropping
     const hs = 12;
-    [[rx, ry], [rx+rw, ry], [rx, ry+rh], [rx+rw, ry+rh]].forEach(([cx, cy]) => {
-      ctx.fillRect(cx - hs/2, cy - hs/2, hs, hs);
+    [[rx, ry], [rx + rw, ry], [rx, ry + rh], [rx + rw, ry + rh]].forEach(([cx, cy]) => {
+      ctx.fillRect(cx - hs / 2, cy - hs / 2, hs, hs);
     });
   }
 
   selectionIsWhole(): boolean {
-    // consider selection whole if it touches all four edges within a small tolerance
     const canvas = this.cropCanvasRef?.nativeElement;
     if (!canvas) return false;
     const { x1, y1, x2, y2 } = this.cropRect;
@@ -238,15 +259,14 @@ export class ScannerComponent implements OnInit, OnDestroy {
   }
 
   async confirmCrop() {
-    // if the user has essentially selected the entire image, just scan full preview
     if (this.selectionIsWhole()) {
       await this.runScan(this.imagePreview()!);
       return;
     }
 
-    const img    = this.cropImgRef.nativeElement;
+    const img = this.cropImgRef.nativeElement;
     const canvas = this.cropCanvasRef.nativeElement;
-    const scaleX = img.naturalWidth  / canvas.width;
+    const scaleX = img.naturalWidth / canvas.width;
     const scaleY = img.naturalHeight / canvas.height;
     const { x1, y1, x2, y2 } = this.cropRect;
     const rx = Math.round(Math.min(x1, x2) * scaleX);
@@ -260,12 +280,11 @@ export class ScannerComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const out  = document.createElement('canvas');
-    out.width  = rw;
+    const out = document.createElement('canvas');
+    out.width = rw;
     out.height = rh;
     out.getContext('2d')!.drawImage(img, rx, ry, rw, rh, 0, 0, rw, rh);
     const croppedDataUrl = out.toDataURL('image/png');
-    // Update preview to show the cropped region enlarged
     this.imagePreview.set(croppedDataUrl);
     await this.runScan(croppedDataUrl);
   }
@@ -314,7 +333,6 @@ export class ScannerComponent implements OnInit, OnDestroy {
       }
     }
 
-    // Sort: prefer B series, then longest number
     const sorted = [...candidates].sort((a, b) => {
       if (a.letter === 'B' && b.letter !== 'B') return -1;
       if (a.letter !== 'B' && b.letter === 'B') return 1;
@@ -335,7 +353,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
   }
 
   /** Called when user confirms the serial (edited or not) */
-  confirmSerial() {
+  async confirmSerial() {
     const numStr = this.editSerialNum().replace(/\s/g, '');
     const letter = this.editSerialLetter().toUpperCase().trim();
     const num = parseInt(numStr, 10);
@@ -355,6 +373,12 @@ export class ScannerComponent implements OnInit, OnDestroy {
       this.denomRanges.set(this.seriesData.filter(e => e.denom === denom));
     }
 
+    // Buscar el rango especial que aplique a este billete (para mostrarlo en válido)
+    if (this.especialData && denom) {
+      const especial = this.especialData.find(e => e.denom === denom && num >= e.min && num <= e.max);
+      this.especialForDenom.set(especial ?? null);
+    }
+
     if (letter !== 'B') {
       this.showRangesOpen.set(false);
       this.errorMsg.set(`Serie ${letter} — no pertenece a los billetes ilegales`);
@@ -363,6 +387,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // 1) Buscar en formatbcbv2.json
     const result = this.checkInRanges(num);
     if (result) {
       this.matchedRange.set(result);
@@ -371,13 +396,51 @@ export class ScannerComponent implements OnInit, OnDestroy {
       this.showRangesOpen.set(true);
       this.status.set('done');
       this.isValid.set(false);
-    } else {
-      this.matchedRange.set(null);
-      this.detectedDenom.set(null);
-      this.errorMsg.set('Serie B — número no figura en registros ilegalizados');
-      this.showRangesOpen.set(false);
-      this.status.set('done');
-      this.isValid.set(true);
+      return;
+    }
+
+    // 2) No encontrado en formatbcbv2 → buscar en especialv2.json
+    if (this.especialData && denom) {
+      const especialEntry = this.especialData.find(e => e.denom === denom && num >= e.min && num <= e.max);
+      if (especialEntry) {
+        // Está en el rango especial → buscar en el sub-JSON
+        const hit = await this.checkInSubJson(num, especialEntry);
+        if (hit) {
+          this.especialHit.set(hit);
+          this.matchedRange.set(null);
+          this.detectedDenom.set(`Bs. ${especialEntry.denom}`);
+          this.errorMsg.set(`Registrado en sub-serie "${especialEntry.key}" — billete ilegalizado`);
+          this.showRangesOpen.set(true);
+          this.status.set('done');
+          this.isValid.set(false);
+          return;
+        }
+      }
+    }
+
+    // 3) No encontrado en ningún lado → VÁLIDO
+    this.matchedRange.set(null);
+    this.especialHit.set(null);
+    this.detectedDenom.set(null);
+    this.errorMsg.set('Serie B — número no figura en registros ilegalizados');
+    this.showRangesOpen.set(false);
+    this.status.set('done');
+    this.isValid.set(true);
+  }
+
+  /** Busca el número en el sub-JSON especial (serie20 o serie50) */
+  private async checkInSubJson(num: number, entry: EspecialEntry): Promise<EspecialHit | null> {
+    try {
+      const res = await fetch(`/${entry.json}.json`);
+      const data: [number, number][] = await res.json();
+      for (const [min, max] of data) {
+        if (num >= min && num <= max) {
+          return { entry, subRange: [min, max] };
+        }
+      }
+      return null;
+    } catch {
+      return null;
     }
   }
 
@@ -449,7 +512,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
           const d = id.data;
           for (let i = 0; i < d.length; i += 4) {
             const c = Math.min(255, Math.max(0, (d[i] - 128) * 1.5 + 128));
-            d[i] = d[i+1] = d[i+2] = c;
+            d[i] = d[i + 1] = d[i + 2] = c;
           }
           ctx.putImageData(id, 0, 0);
           resolve(canvas);
@@ -463,14 +526,14 @@ export class ScannerComponent implements OnInit, OnDestroy {
 
   private autoCrop(ctx: CanvasRenderingContext2D, w: number, h: number) {
     const id = ctx.getImageData(0, 0, w, h); const d = id.data;
-    const isB = (px: number) => d[px] > 240 && d[px+1] > 240 && d[px+2] > 240;
-    let top = 0, bottom = h-1, left = 0, right = w-1;
-    outer: for (let r = 0; r < h; r++) for (let c = 0; c < w; c++) { if (!isB((r*w+c)*4)) { top = r; break outer; } }
-    outer: for (let r = h-1; r >= 0; r--) for (let c = 0; c < w; c++) { if (!isB((r*w+c)*4)) { bottom = r; break outer; } }
-    outer: for (let c = 0; c < w; c++) for (let r = 0; r < h; r++) { if (!isB((r*w+c)*4)) { left = c; break outer; } }
-    outer: for (let c = w-1; c >= 0; c--) for (let r = 0; r < h; r++) { if (!isB((r*w+c)*4)) { right = c; break outer; } }
+    const isB = (px: number) => d[px] > 240 && d[px + 1] > 240 && d[px + 2] > 240;
+    let top = 0, bottom = h - 1, left = 0, right = w - 1;
+    outer: for (let r = 0; r < h; r++) for (let c = 0; c < w; c++) { if (!isB((r * w + c) * 4)) { top = r; break outer; } }
+    outer: for (let r = h - 1; r >= 0; r--) for (let c = 0; c < w; c++) { if (!isB((r * w + c) * 4)) { bottom = r; break outer; } }
+    outer: for (let c = 0; c < w; c++) for (let r = 0; r < h; r++) { if (!isB((r * w + c) * 4)) { left = c; break outer; } }
+    outer: for (let c = w - 1; c >= 0; c--) for (let r = 0; r < h; r++) { if (!isB((r * w + c) * 4)) { right = c; break outer; } }
     const p = 8;
-    return { x: Math.max(0,left-p), y: Math.max(0,top-p), w: Math.min(w,right-left+p*2), h: Math.min(h,bottom-top+p*2) };
+    return { x: Math.max(0, left - p), y: Math.max(0, top - p), w: Math.min(w, right - left + p * 2), h: Math.min(h, bottom - top + p * 2) };
   }
 
   private readFileAsDataURL(file: File): Promise<string> {
@@ -498,6 +561,8 @@ export class ScannerComponent implements OnInit, OnDestroy {
     this.matchedRange.set(null);
     this.denomRanges.set([]);
     this.showRangesOpen.set(false);
+    this.especialHit.set(null);
+    this.especialForDenom.set(null);
   }
 
   reset() {

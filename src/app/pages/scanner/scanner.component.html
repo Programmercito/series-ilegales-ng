@@ -1,382 +1,426 @@
 <main class="main-content">
 
   @if (status() === 'select-denom') {
-    <div class="scan-card scan-card--denom">
-      <div class="denom-select-header">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="denom-select-icon">
-          <rect x="2" y="4" width="20" height="16" rx="2"/>
-          <path d="M2 10h20"/>
-        </svg>
-        <p class="denom-select-title">¿Qué billete vas a verificar?</p>
-        <p class="denom-select-hint">Selecciona la denominación del billete</p>
-      </div>
-      <div class="denom-buttons">
-        <button class="btn btn-denom" (click)="selectDenom(10)">
-          <span class="denom-value">Bs. 10</span>
-        </button>
-        <button class="btn btn-denom" (click)="selectDenom(20)">
-          <span class="denom-value">Bs. 20</span>
-        </button>
-        <button class="btn btn-denom" (click)="selectDenom(50)">
-          <span class="denom-value">Bs. 50</span>
-        </button>
-      </div>
+  <div class="scan-card scan-card--denom">
+    <div class="denom-select-header">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="denom-select-icon">
+        <rect x="2" y="4" width="20" height="16" rx="2" />
+        <path d="M2 10h20" />
+      </svg>
+      <p class="denom-select-title">¿Qué billete vas a verificar?</p>
+      <p class="denom-select-hint">Selecciona la denominación del billete</p>
     </div>
+    <div class="denom-buttons">
+      <button class="btn btn-denom" (click)="selectDenom(10)">
+        <span class="denom-value">Bs. 10</span>
+      </button>
+      <button class="btn btn-denom" (click)="selectDenom(20)">
+        <span class="denom-value">Bs. 20</span>
+      </button>
+      <button class="btn btn-denom" (click)="selectDenom(50)">
+        <span class="denom-value">Bs. 50</span>
+      </button>
+    </div>
+  </div>
   }
 
   @if (status() === 'idle') {
-    <div class="scan-tip">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="scan-tip-icon">
-        <circle cx="12" cy="12" r="10"/>
-        <line x1="12" y1="8" x2="12" y2="12"/>
-        <line x1="12" y1="16" x2="12.01" y2="16"/>
-      </svg>
-      <p>Para mejores resultados, toma una <strong>foto clara y de cerca</strong> del número de serie del billete.</p>
-    </div>
-    <div class="scan-card">
-      <div
-        class="scan-zone"
-        (click)="triggerGalleryInput()"
-        (dragover)="$event.preventDefault()"
-        (drop)="onDrop($event)"
-      >
-        <div class="scan-icon-ring">
-          <svg viewBox="0 0 96 96" fill="none">
-            <circle cx="48" cy="48" r="44" stroke="currentColor" stroke-width="1.5" stroke-dasharray="5 4" class="ring-dash"/>
-            <path d="M30 48h36M48 30v36" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-          </svg>
-        </div>
-        <p class="scan-hint">Toca para <strong>subir imagen</strong> o tomar foto</p>
-        <p class="scan-hint-sub">También puedes arrastrar una imagen aquí</p>
+  <div class="scan-tip">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="scan-tip-icon">
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="8" x2="12" y2="12" />
+      <line x1="12" y1="16" x2="12.01" y2="16" />
+    </svg>
+    <p>Para mejores resultados, toma una <strong>foto clara y de cerca</strong> del número de serie del billete.</p>
+  </div>
+  <div class="scan-card">
+    <div class="scan-zone" (click)="triggerGalleryInput()" (dragover)="$event.preventDefault()" (drop)="onDrop($event)">
+      <div class="scan-icon-ring">
+        <svg viewBox="0 0 96 96" fill="none">
+          <circle cx="48" cy="48" r="44" stroke="currentColor" stroke-width="1.5" stroke-dasharray="5 4"
+            class="ring-dash" />
+          <path d="M30 48h36M48 30v36" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+        </svg>
       </div>
-      <div class="btn-row">
-        <button class="btn btn-camera" (click)="triggerFileInput()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-            <circle cx="12" cy="13" r="4"/>
-          </svg>
-          Tomar Foto
-        </button>
-        <button class="btn btn-gallery" (click)="triggerGalleryInput()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="3" width="18" height="18" rx="2"/>
-            <circle cx="8.5" cy="8.5" r="1.5"/>
-            <path d="M21 15l-5-5L5 21"/>
-          </svg>
-          Galería
-        </button>
-      </div>
-      <input #fileInput type="file" accept="image/*" capture="environment"
-             class="file-input-hidden" (change)="onFileSelected($event)"/>
-      <input #galleryInput type="file" accept="image/*"
-             class="file-input-hidden" (change)="onFileSelected($event)"/>
+      <p class="scan-hint">Toca para <strong>subir imagen</strong> o tomar foto</p>
+      <p class="scan-hint-sub">También puedes arrastrar una imagen aquí</p>
     </div>
+    <div class="btn-row">
+      <button class="btn btn-camera" (click)="triggerFileInput()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+          <circle cx="12" cy="13" r="4" />
+        </svg>
+        Tomar Foto
+      </button>
+      <button class="btn btn-gallery" (click)="triggerGalleryInput()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2" />
+          <circle cx="8.5" cy="8.5" r="1.5" />
+          <path d="M21 15l-5-5L5 21" />
+        </svg>
+        Galería
+      </button>
+    </div>
+    <input #fileInput type="file" accept="image/*" capture="environment" class="file-input-hidden"
+      (change)="onFileSelected($event)" />
+    <input #galleryInput type="file" accept="image/*" class="file-input-hidden" (change)="onFileSelected($event)" />
+  </div>
   }
 
   @if (status() === 'cropping') {
-    <div class="scan-card scan-card--crop">
-      <div class="crop-header">
-        <p class="crop-title">Selecciona la zona del número de serie</p>
-        <p class="crop-hint">Arrastra o toca para enmarcar el área a escanear; luego pulsa el botón "Escanear".</p>
-      </div>
-      <div class="crop-container">
-        <img #cropImg [src]="imagePreview()" class="crop-img" alt="Imagen" (load)="onCropImgLoad()" />
-        <canvas #cropCanvas class="crop-canvas"
-          (mousedown)="onCropStart($event)"
-          (mousemove)="onCropMove($event)"
-          (mouseup)="onCropEnd($event)"
-          (mouseleave)="onCropEnd($event)"
-          (touchstart)="onCropTouchStart($event)"
-          (touchmove)="onCropTouchMove($event)"
-          (touchend)="onCropTouchEnd($event)"
-        ></canvas>
-      </div>
-      <!-- extra hint below the image, shown when cropping -->
-      <p class="crop-extra-hint">Toca la foto o arrastra para elegir la sección que quieres escanear</p>
-      <div class="crop-actions">
-        <button class="btn btn-crop-confirm" (click)="confirmCrop()" [disabled]="!hasCropSelection()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="9 11 12 14 22 4"/>
-            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-          </svg>
-          Escanear
-        </button>
-      </div>
-      <input #fileInput type="file" accept="image/*" capture="environment"
-             class="file-input-hidden" (change)="onFileSelected($event)"/>
+  <div class="scan-card scan-card--crop">
+    <div class="crop-header">
+      <p class="crop-title">Selecciona la zona del número de serie</p>
+      <p class="crop-hint">Arrastra o toca para enmarcar el área a escanear; luego pulsa el botón "Escanear".</p>
     </div>
+    <div class="crop-container">
+      <img #cropImg [src]="imagePreview()" class="crop-img" alt="Imagen" (load)="onCropImgLoad()" />
+      <canvas #cropCanvas class="crop-canvas" (mousedown)="onCropStart($event)" (mousemove)="onCropMove($event)"
+        (mouseup)="onCropEnd($event)" (mouseleave)="onCropEnd($event)" (touchstart)="onCropTouchStart($event)"
+        (touchmove)="onCropTouchMove($event)" (touchend)="onCropTouchEnd($event)"></canvas>
+    </div>
+    <!-- extra hint below the image, shown when cropping -->
+    <p class="crop-extra-hint">Toca la foto o arrastra para elegir la sección que quieres escanear</p>
+    <div class="crop-actions">
+      <button class="btn btn-crop-confirm" (click)="confirmCrop()" [disabled]="!hasCropSelection()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="9 11 12 14 22 4" />
+          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+        </svg>
+        Escanear
+      </button>
+    </div>
+    <input #fileInput type="file" accept="image/*" capture="environment" class="file-input-hidden"
+      (change)="onFileSelected($event)" />
+  </div>
   }
 
   @if (status() === 'loading' || status() === 'scanning') {
-    <div class="scan-card scan-card--processing">
-      @if (imagePreview()) {
-        <div class="preview-container">
-          <img [src]="imagePreview()" alt="Imagen capturada" class="preview-img" />
-          <div class="scan-overlay"><div class="scan-line"></div></div>
-        </div>
-      }
-      <div class="progress-section">
-        <div class="spinner-wrap"><div class="spinner"></div></div>
-        <p class="progress-label">{{ progressMsg() }}</p>
-        @if (status() === 'scanning') {
-          <div class="progress-bar-track">
-            <div class="progress-bar-fill" [style.width.%]="progress()"></div>
-          </div>
-          <p class="progress-pct">{{ progress() }}%</p>
-        }
+  <div class="scan-card scan-card--processing">
+    @if (imagePreview()) {
+    <div class="preview-container">
+      <img [src]="imagePreview()" alt="Imagen capturada" class="preview-img" />
+      <div class="scan-overlay">
+        <div class="scan-line"></div>
       </div>
-      <input #fileInput type="file" accept="image/*" capture="environment"
-             class="file-input-hidden" (change)="onFileSelected($event)"/>
-      <input #galleryInput type="file" accept="image/*"
-             class="file-input-hidden" (change)="onFileSelected($event)"/>
     </div>
+    }
+    <div class="progress-section">
+      <div class="spinner-wrap">
+        <div class="spinner"></div>
+      </div>
+      <p class="progress-label">{{ progressMsg() }}</p>
+      @if (status() === 'scanning') {
+      <div class="progress-bar-track">
+        <div class="progress-bar-fill" [style.width.%]="progress()"></div>
+      </div>
+      <p class="progress-pct">{{ progress() }}%</p>
+      }
+    </div>
+    <input #fileInput type="file" accept="image/*" capture="environment" class="file-input-hidden"
+      (change)="onFileSelected($event)" />
+    <input #galleryInput type="file" accept="image/*" class="file-input-hidden" (change)="onFileSelected($event)" />
+  </div>
   }
 
   @if (status() === 'confirming') {
-    <div class="scan-card scan-card--confirm">
+  <div class="scan-card scan-card--confirm">
 
-      @if (imagePreview()) {
-        <div class="preview-thumb-row">
-          <img [src]="imagePreview()" alt="Imagen escaneada" class="preview-thumb" />
-        </div>
-      }
-
-      <div class="confirm-header">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="confirm-icon">
-          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-        </svg>
-        <p class="confirm-title">Verifica el número detectado</p>
-        <p class="confirm-hint">Puedes corregirlo antes de verificar</p>
-      </div>
-
-      <div class="confirm-inputs">
-        <div class="confirm-field confirm-field--num">
-          <label class="confirm-label">Número de serie</label>
-          <input type="text" class="confirm-input" inputmode="numeric"
-                 [ngModel]="editSerialNum()"
-                 (ngModelChange)="editSerialNum.set($event)"
-                 placeholder="Ej: 302885981" />
-        </div>
-        <div class="confirm-field confirm-field--letter">
-          <label class="confirm-label">Serie</label>
-          <input type="text" class="confirm-input confirm-input--letter" maxlength="1"
-                 [ngModel]="editSerialLetter()"
-                 (ngModelChange)="editSerialLetter.set($event)"
-                 placeholder="B" />
-        </div>
-      </div>
-
-      @if (allCandidates().length > 1) {
-        <div class="candidates-section">
-          <p class="candidates-label">Otros números detectados:</p>
-          <div class="candidates-list">
-            @for (c of allCandidates(); track c.num + c.letter; let i = $index) {
-              @if (i > 0) {
-                <button class="candidate-chip"
-                        [class.candidate-chip--active]="editSerialNum() === '' + c.num && editSerialLetter() === c.letter"
-                        (click)="selectCandidate(c)">
-                  {{ c.num }} {{ c.letter }}
-                </button>
-              }
-            }
-          </div>
-        </div>
-      }
-
-      <div class="confirm-actions">
-        <button class="btn btn-verify" (click)="confirmSerial()"
-                [disabled]="!editSerialNum() || !editSerialLetter()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-            <polyline points="22 4 12 14.01 9 11.01"/>
-          </svg>
-          Verificar
-        </button>
-        <button class="btn btn-reset" (click)="reset()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-            <path d="M3 3v5h5"/>
-          </svg>
-          Cancelar
-        </button>
-      </div>
-
-      <input #fileInput type="file" accept="image/*" capture="environment"
-             class="file-input-hidden" (change)="onFileSelected($event)"/>
-      <input #galleryInput type="file" accept="image/*"
-             class="file-input-hidden" (change)="onFileSelected($event)"/>
+    @if (imagePreview()) {
+    <div class="preview-thumb-row">
+      <img [src]="imagePreview()" alt="Imagen escaneada" class="preview-thumb" />
     </div>
+    }
+
+    <div class="confirm-header">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="confirm-icon">
+        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+      </svg>
+      <p class="confirm-title">Verifica el número detectado</p>
+      <p class="confirm-hint">Puedes corregirlo antes de verificar</p>
+    </div>
+
+    <div class="confirm-inputs">
+      <div class="confirm-field confirm-field--num">
+        <label class="confirm-label">Número de serie</label>
+        <input type="text" class="confirm-input" inputmode="numeric" [ngModel]="editSerialNum()"
+          (ngModelChange)="editSerialNum.set($event)" placeholder="Ej: 302885981" />
+      </div>
+      <div class="confirm-field confirm-field--letter">
+        <label class="confirm-label">Serie</label>
+        <input type="text" class="confirm-input confirm-input--letter" maxlength="1" [ngModel]="editSerialLetter()"
+          (ngModelChange)="editSerialLetter.set($event)" placeholder="B" />
+      </div>
+    </div>
+
+    @if (allCandidates().length > 1) {
+    <div class="candidates-section">
+      <p class="candidates-label">Otros números detectados:</p>
+      <div class="candidates-list">
+        @for (c of allCandidates(); track c.num + c.letter; let i = $index) {
+        @if (i > 0) {
+        <button class="candidate-chip"
+          [class.candidate-chip--active]="editSerialNum() === '' + c.num && editSerialLetter() === c.letter"
+          (click)="selectCandidate(c)">
+          {{ c.num }} {{ c.letter }}
+        </button>
+        }
+        }
+      </div>
+    </div>
+    }
+
+    <div class="confirm-actions">
+      <button class="btn btn-verify" (click)="confirmSerial()" [disabled]="!editSerialNum() || !editSerialLetter()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+          <polyline points="22 4 12 14.01 9 11.01" />
+        </svg>
+        Verificar
+      </button>
+      <button class="btn btn-reset" (click)="reset()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+          <path d="M3 3v5h5" />
+        </svg>
+        Cancelar
+      </button>
+    </div>
+
+    <input #fileInput type="file" accept="image/*" capture="environment" class="file-input-hidden"
+      (change)="onFileSelected($event)" />
+    <input #galleryInput type="file" accept="image/*" class="file-input-hidden" (change)="onFileSelected($event)" />
+  </div>
   }
 
   @if (status() === 'done' || status() === 'error') {
-    <div class="scan-card scan-card--result">
+  <div class="scan-card scan-card--result">
 
-      @if (imagePreview()) {
-        <div class="preview-thumb-row">
-          <img [src]="imagePreview()" alt="Imagen analizada" class="preview-thumb" />
-        </div>
-      }
-
-      @if (isValid() === true) {
-        <div class="result-badge result-badge--valid">
-          <div class="result-icon">
-            <svg viewBox="0 0 72 72" fill="none">
-              <circle cx="36" cy="36" r="34" fill="rgba(72,199,142,0.12)" stroke="#48c78e" stroke-width="2"/>
-              <path d="M20 36l12 12 20-22" stroke="#48c78e" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <span class="result-label valid">VALIDO</span>
-          @if (selectedDenom()) {
-            <span class="result-denom-info">Billete esperado: Bs. {{ selectedDenom() }}</span>
-          }
-          @if (errorMsg()) { <span class="result-sub">{{ errorMsg() }}</span> }
-        </div>
-      }
-
-      @if (isValid() === false) {
-        <div class="result-badge result-badge--invalid">
-          <div class="result-icon">
-            <svg viewBox="0 0 72 72" fill="none">
-              <circle cx="36" cy="36" r="34" fill="rgba(255,69,58,0.1)" stroke="#ff453a" stroke-width="2"/>
-              <path d="M24 24l24 24M48 24L24 48" stroke="#ff453a" stroke-width="3.5" stroke-linecap="round"/>
-            </svg>
-          </div>
-          <span class="result-label invalid">INVALIDO</span>
-          @if (selectedDenom()) {
-            <span class="result-denom-info">Billete esperado: Bs. {{ selectedDenom() }}</span>
-          }
-          @if (errorMsg()) { <span class="result-sub">{{ errorMsg() }}</span> }
-        </div>
-
-        @if (matchedRange()) {
-          <div class="matched-range-card">
-            <div class="matched-range-header">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="matched-range-icon">
-                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                <line x1="12" y1="9" x2="12" y2="13"/>
-                <line x1="12" y1="17" x2="12.01" y2="17"/>
-              </svg>
-              <span class="matched-range-title">Rango ilegal encontrado</span>
-            </div>
-            <div class="matched-range-body">
-              <div class="matched-range-row">
-                <span class="matched-range-label">Desde:</span>
-                <span class="matched-range-value">{{ formatNum(matchedRange()!.s) }}</span>
-              </div>
-              <div class="matched-range-row">
-                <span class="matched-range-label">Hasta:</span>
-                <span class="matched-range-value">{{ formatNum(matchedRange()!.e) }}</span>
-              </div>
-              <div class="matched-range-row">
-                <span class="matched-range-label">Cantidad:</span>
-                <span class="matched-range-value">{{ formatNum(matchedRange()!.e - matchedRange()!.s + 1) }} billetes</span>
-              </div>
-            </div>
-          </div>
-        }
-      }
-
-      @if (isValid() === null) {
-        <div class="result-badge result-badge--unknown">
-          <div class="result-icon">
-            <svg viewBox="0 0 72 72" fill="none">
-              <circle cx="36" cy="36" r="34" fill="rgba(255,200,0,0.1)" stroke="#ffc800" stroke-width="2"/>
-              <text x="36" y="44" text-anchor="middle" font-size="28" fill="#ffc800" font-weight="bold">?</text>
-            </svg>
-          </div>
-          <span class="result-label unknown">NO DETECTADO</span>
-          @if (errorMsg()) { <span class="result-sub">{{ errorMsg() }}</span> }
-        </div>
-      }
-
-      @if (detectedSerial()) {
-        <div class="serial-display serial-display--editable"
-             [class.serial-valid]="isValid() === true"
-             [class.serial-invalid]="isValid() === false"
-             (click)="editFromResult()">
-          <span class="serial-num">{{ detectedSerial() }}</span>
-          @if (detectedDenom()) {
-            <span class="serial-denom">{{ detectedDenom() }}</span>
-          }
-          <span class="serial-edit-hint">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="edit-hint-icon">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-            </svg>
-            Toca para corregir
-          </span>
-        </div>
-      }
-
-      @if (denomRanges().length > 0) {
-        <div class="ranges-dropdown">
-          <button class="ranges-dropdown-toggle" (click)="toggleRanges()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ranges-toggle-icon">
-              <rect x="3" y="3" width="18" height="18" rx="2"/>
-              <path d="M3 9h18M3 15h18M9 3v18"/>
-            </svg>
-            <span>Ver todos los rangos ilegales — Bs. {{ selectedDenom() }}</span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                 class="ranges-chevron" [class.ranges-chevron--open]="showRangesOpen()">
-              <polyline points="6 9 12 15 18 9"/>
-            </svg>
-          </button>
-          @if (showRangesOpen()) {
-            <div class="ranges-dropdown-body">
-              <table class="ranges-mini-table">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Desde</th>
-                    <th>Hasta</th>
-                    <th class="col-qty">Cantidad</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (r of denomRanges(); track r.s; let i = $index) {
-                    <tr [class.matched-row]="matchedRange() && matchedRange()!.s === r.s">
-                      <td class="muted">{{ i + 1 }}</td>
-                      <td>{{ formatNum(r.s) }}</td>
-                      <td>{{ formatNum(r.e) }}</td>
-                      <td class="col-qty">{{ formatNum(r.e - r.s + 1) }}</td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            </div>
-          }
-        </div>
-      }
-
-      <div class="result-actions">
-        <button class="btn btn-reset" (click)="reset()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-            <path d="M3 3v5h5"/>
-          </svg>
-          Verificar otro billete
-        </button>
-      </div>
-
-      <input #fileInput type="file" accept="image/*" capture="environment"
-             class="file-input-hidden" (change)="onFileSelected($event)"/>
-      <input #galleryInput type="file" accept="image/*"
-             class="file-input-hidden" (change)="onFileSelected($event)"/>
+    @if (imagePreview()) {
+    <div class="preview-thumb-row">
+      <img [src]="imagePreview()" alt="Imagen analizada" class="preview-thumb" />
     </div>
+    }
+
+    @if (isValid() === true) {
+    <div class="result-badge result-badge--valid">
+      <div class="result-icon">
+        <svg viewBox="0 0 72 72" fill="none">
+          <circle cx="36" cy="36" r="34" fill="rgba(72,199,142,0.12)" stroke="#48c78e" stroke-width="2" />
+          <path d="M20 36l12 12 20-22" stroke="#48c78e" stroke-width="3.5" stroke-linecap="round"
+            stroke-linejoin="round" />
+        </svg>
+      </div>
+      <span class="result-label valid">VALIDO</span>
+      @if (selectedDenom()) {
+      <span class="result-denom-info">Billete esperado: Bs. {{ selectedDenom() }}</span>
+      }
+      @if (errorMsg()) { <span class="result-sub">{{ errorMsg() }}</span> }
+    </div>
+    }
+
+    @if (isValid() === false) {
+    <div class="result-badge result-badge--invalid">
+      <div class="result-icon">
+        <svg viewBox="0 0 72 72" fill="none">
+          <circle cx="36" cy="36" r="34" fill="rgba(255,69,58,0.1)" stroke="#ff453a" stroke-width="2" />
+          <path d="M24 24l24 24M48 24L24 48" stroke="#ff453a" stroke-width="3.5" stroke-linecap="round" />
+        </svg>
+      </div>
+      <span class="result-label invalid">INVALIDO</span>
+      @if (selectedDenom()) {
+      <span class="result-denom-info">Billete esperado: Bs. {{ selectedDenom() }}</span>
+      }
+      @if (errorMsg()) { <span class="result-sub">{{ errorMsg() }}</span> }
+    </div>
+
+    <!-- Caso normal: encontrado en formatbcbv2 -->
+    @if (matchedRange()) {
+    <div class="matched-range-card">
+      <div class="matched-range-header">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="matched-range-icon">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+          <line x1="12" y1="9" x2="12" y2="13" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
+        </svg>
+        <span class="matched-range-title">Rango ilegal encontrado — Registro BCB</span>
+      </div>
+      <div class="matched-range-body">
+        <div class="matched-range-row">
+          <span class="matched-range-label">Desde:</span>
+          <span class="matched-range-value">{{ formatNum(matchedRange()!.s) }}</span>
+        </div>
+        <div class="matched-range-row">
+          <span class="matched-range-label">Hasta:</span>
+          <span class="matched-range-value">{{ formatNum(matchedRange()!.e) }}</span>
+        </div>
+        <div class="matched-range-row">
+          <span class="matched-range-label">Cantidad:</span>
+          <span class="matched-range-value">{{ formatNum(matchedRange()!.e - matchedRange()!.s + 1) }} billetes</span>
+        </div>
+      </div>
+    </div>
+    }
+
+    <!-- Caso especial: encontrado en serie20/serie50 -->
+    @if (especialHit()) {
+    <div class="matched-range-card matched-range-card--especial">
+      <div class="matched-range-header">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="matched-range-icon">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+          <line x1="12" y1="9" x2="12" y2="13" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
+        </svg>
+        <span class="matched-range-title">Sub-serie especial — {{ especialHit()!.entry.key }}</span>
+      </div>
+      <div class="matched-range-body">
+        <!-- Rango macro del especial -->
+        <div class="especial-group-label">Rango macro (especialv2)</div>
+        <div class="matched-range-row">
+          <span class="matched-range-label">Desde:</span>
+          <span class="matched-range-value">{{ formatNum(especialHit()!.entry.min) }}</span>
+        </div>
+        <div class="matched-range-row">
+          <span class="matched-range-label">Hasta:</span>
+          <span class="matched-range-value">{{ formatNum(especialHit()!.entry.max) }}</span>
+        </div>
+        <!-- Sub-rango exacto donde encajó -->
+        <div class="especial-group-label especial-group-label--match">Sub-rango donde encajó</div>
+        <div class="matched-range-row matched-range-row--highlight">
+          <span class="matched-range-label">Desde:</span>
+          <span class="matched-range-value">{{ formatNum(especialHit()!.subRange[0]) }}</span>
+        </div>
+        <div class="matched-range-row matched-range-row--highlight">
+          <span class="matched-range-label">Hasta:</span>
+          <span class="matched-range-value">{{ formatNum(especialHit()!.subRange[1]) }}</span>
+        </div>
+      </div>
+    </div>
+    }
+    }
+
+    @if (isValid() === null) {
+    <div class="result-badge result-badge--unknown">
+      <div class="result-icon">
+        <svg viewBox="0 0 72 72" fill="none">
+          <circle cx="36" cy="36" r="34" fill="rgba(255,200,0,0.1)" stroke="#ffc800" stroke-width="2" />
+          <text x="36" y="44" text-anchor="middle" font-size="28" fill="#ffc800" font-weight="bold">?</text>
+        </svg>
+      </div>
+      <span class="result-label unknown">NO DETECTADO</span>
+      @if (errorMsg()) { <span class="result-sub">{{ errorMsg() }}</span> }
+    </div>
+    }
+
+    @if (detectedSerial()) {
+    <div class="serial-display serial-display--editable" [class.serial-valid]="isValid() === true"
+      [class.serial-invalid]="isValid() === false" (click)="editFromResult()">
+      <span class="serial-num">{{ detectedSerial() }}</span>
+      @if (detectedDenom()) {
+      <span class="serial-denom">{{ detectedDenom() }}</span>
+      }
+      <span class="serial-edit-hint">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="edit-hint-icon">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+        </svg>
+        Toca para corregir
+      </span>
+    </div>
+    }
+
+    <!-- Rangos de referencia (válido o inválido) -->
+    @if (denomRanges().length > 0) {
+    <div class="ranges-dropdown">
+      <button class="ranges-dropdown-toggle" (click)="toggleRanges()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ranges-toggle-icon">
+          <rect x="3" y="3" width="18" height="18" rx="2" />
+          <path d="M3 9h18M3 15h18M9 3v18" />
+        </svg>
+        <span>Ver rangos ilegales de referencia — Bs. {{ selectedDenom() }}</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ranges-chevron"
+          [class.ranges-chevron--open]="showRangesOpen()">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      @if (showRangesOpen()) {
+      <div class="ranges-dropdown-body">
+        <!-- Si hay un rango especial para este billete, mostrarlo arriba -->
+        @if (especialForDenom()) {
+        <div class="especial-info-banner">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="especial-info-icon">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+          <div class="especial-info-content">
+            <span class="especial-info-title">Este número está en el rango de sub-serie especial</span>
+            <span class="especial-info-key">{{ especialForDenom()!.key }}</span>
+            <span class="especial-info-range">{{ formatNum(especialForDenom()!.min) }} — {{
+              formatNum(especialForDenom()!.max) }}</span>
+          </div>
+        </div>
+        }
+        <table class="ranges-mini-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Desde</th>
+              <th>Hasta</th>
+              <th class="col-qty">Cantidad</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of denomRanges(); track r.s; let i = $index) {
+            <tr [class.matched-row]="matchedRange() && matchedRange()!.s === r.s">
+              <td class="muted">{{ i + 1 }}</td>
+              <td>{{ formatNum(r.s) }}</td>
+              <td>{{ formatNum(r.e) }}</td>
+              <td class="col-qty">{{ formatNum(r.e - r.s + 1) }}</td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      }
+    </div>
+    }
+
+    <div class="result-actions">
+      <button class="btn btn-reset" (click)="reset()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+          <path d="M3 3v5h5" />
+        </svg>
+        Verificar otro billete
+      </button>
+    </div>
+
+    <input #fileInput type="file" accept="image/*" capture="environment" class="file-input-hidden"
+      (change)="onFileSelected($event)" />
+    <input #galleryInput type="file" accept="image/*" class="file-input-hidden" (change)="onFileSelected($event)" />
+  </div>
   }
 
   <div class="disclaimer">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="disclaimer-icon">
-      <circle cx="12" cy="12" r="10"/>
-      <line x1="12" y1="8" x2="12" y2="12"/>
-      <line x1="12" y1="16" x2="12.01" y2="16"/>
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="8" x2="12" y2="12" />
+      <line x1="12" y1="16" x2="12.01" y2="16" />
     </svg>
-    <p class="disclaimer-text">
-      El responsable de admitir o rechazar finalmente el billete es <strong>el usuario</strong>.
-      Esta aplicación <strong>no tiene garantía ni soporte</strong> y es <strong>totalmente gratuita</strong>.
-      Úsela bajo su propia responsabilidad.
-    </p>
+    <div>
+      <p class="disclaimer-text">
+        El responsable de admitir o rechazar finalmente el billete es <strong>el usuario</strong>.
+        Esta aplicación <strong>no tiene garantía ni soporte</strong> y es <strong>totalmente gratuita</strong>.
+        Úsela bajo su propia responsabilidad.
+      </p>
+      <p class="disclaimer-text disclaimer-text--date">
+        ⚠️ El BCB ha cambiado los rangos. Esta versión está actualizada hasta el
+        <strong>7 de marzo de 2026</strong> — podrían seguir cambiando.
+      </p>
+    </div>
   </div>
 
 </main>

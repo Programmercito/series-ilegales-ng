@@ -1,15 +1,17 @@
 // ── Tokens ───────────────────────────────────────────────────────────
-$bg:         #071410;
-$surface:    #0d1f1a;
-$surface2:   #112b24;
-$border:     #1e4a3a;
-$green:      #48c78e;
-$green-dim:  #2fa870;
-$green-glow: rgba(72,199,142,.2);
-$text:       #e6f4ef;
-$muted:      #7ab89a;
-$red:        #ff453a;
-$yellow:     #ffc800;
+$bg: #071410;
+$surface: #0d1f1a;
+$surface2: #112b24;
+$border: #1e4a3a;
+$green: #48c78e;
+$green-dim: #2fa870;
+$green-glow: rgba(72, 199, 142, .2);
+$text: #e6f4ef;
+$muted: #7ab89a;
+$red: #ff453a;
+$yellow: #ffc800;
+$orange: #ff9f43;
+
 
 // ── Main ─────────────────────────────────────────────────────────────
 .ser-main {
@@ -35,14 +37,19 @@ $yellow:     #ffc800;
 }
 
 .ser-spinner {
-  width: 42px; height: 42px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   border: 3px solid $border;
   border-top-color: $green;
   animation: spin .75s linear infinite;
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 // ── Error ─────────────────────────────────────────────────────────────
 .ser-error {
@@ -56,15 +63,20 @@ $yellow:     #ffc800;
   color: $red;
   font-size: .9rem;
 
-  svg { width: 20px; height: 20px; flex-shrink: 0; }
+  svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
 }
 
 // ── Stats ─────────────────────────────────────────────────────────────
 .ser-stats {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: .85rem;
 }
+
 
 .stat-card {
   background: $surface;
@@ -80,7 +92,17 @@ $yellow:     #ffc800;
 .stat-card--red {
   border-left-color: $red;
 
-  .stat-value { color: $red; }
+  .stat-value {
+    color: $red;
+  }
+}
+
+.stat-card--orange {
+  border-left-color: $orange;
+
+  .stat-value {
+    color: $orange;
+  }
 }
 
 .stat-value {
@@ -126,9 +148,9 @@ $yellow:     #ffc800;
 }
 
 .denom-badge {
-  background: rgba($green,.15);
+  background: rgba($green, .15);
   color: $green;
-  border: 1px solid rgba($green,.3);
+  border: 1px solid rgba($green, .3);
   border-radius: 8px;
   padding: .25rem .65rem;
   font-size: .8rem;
@@ -204,14 +226,23 @@ $yellow:     #ffc800;
       background: rgba($green, .04);
     }
 
-    &:last-child td { border-bottom: none; }
+    &:last-child td {
+      border-bottom: none;
+    }
   }
 }
 
-.col-num  { width: 48px; }
-.col-qty  { text-align: right; }
+.col-num {
+  width: 48px;
+}
 
-.muted { color: $muted !important; }
+.col-qty {
+  text-align: right;
+}
+
+.muted {
+  color: $muted !important;
+}
 
 .serial-cell {
   font-family: 'Inter', monospace;
@@ -236,14 +267,269 @@ $yellow:     #ffc800;
 
 // ── Responsive ───────────────────────────────────────────────────────
 @media (min-width: 600px) {
-  .ser-main { padding: 2rem 1.5rem 3rem; }
-  .stat-value { font-size: 2rem; }
-  .ranges-table { font-size: .92rem; }
+  .ser-main {
+    padding: 2rem 1.5rem 3rem;
+  }
+
+  .stat-value {
+    font-size: 2rem;
+  }
+
+  .ranges-table {
+    font-size: .92rem;
+  }
 }
 
 @media (max-width: 400px) {
-  .ser-stats { grid-template-columns: 1fr; }
-  .stat-value { font-size: 1.4rem; }
+  .ser-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-value {
+    font-size: 1.4rem;
+  }
+
   .ranges-table th,
-  .ranges-table td { padding: .5rem .75rem; }
+  .ranges-table td {
+    padding: .5rem .75rem;
+  }
+}
+
+// ── Especial Section ─────────────────────────────────────────────────
+.especial-section {
+  border-top: 1px solid rgba($orange, .2);
+  padding: 1rem 1.25rem;
+  background: rgba($orange, .03);
+  display: flex;
+  flex-direction: column;
+  gap: .85rem;
+}
+
+.especial-section-header {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.especial-section-icon {
+  width: 18px;
+  height: 18px;
+  color: $orange;
+  flex-shrink: 0;
+}
+
+.especial-section-title {
+  font-size: .85rem;
+  font-weight: 700;
+  color: $orange;
+}
+
+.especial-section-desc {
+  font-size: .75rem;
+  color: $muted;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.especial-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+}
+
+.especial-card {
+  background: $surface2;
+  border: 1px solid rgba($orange, .2);
+  border-left: 3px solid $orange;
+  border-radius: 12px;
+  padding: .85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: .55rem;
+}
+
+.especial-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  flex-wrap: wrap;
+}
+
+.especial-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+}
+
+.especial-card-key {
+  font-size: .92rem;
+  font-weight: 800;
+  color: $orange;
+  letter-spacing: .04em;
+}
+
+.especial-card-range-summary {
+  font-size: .78rem;
+  color: $muted;
+  font-variant-numeric: tabular-nums;
+}
+
+.especial-card-footer-meta {
+  font-size: .72rem;
+  color: $muted;
+  font-variant-numeric: tabular-nums;
+  border-top: 1px solid rgba($orange, .12);
+  padding-top: .4rem;
+}
+
+// ── Toggle button ────────────────────────────────────────────────────
+.btn-toggle-sub {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .45rem .9rem;
+  background: rgba($orange, .1);
+  border: 1px solid rgba($orange, .3);
+  border-radius: 8px;
+  color: $orange;
+  font-size: .78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .15s;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+
+  &:hover {
+    background: rgba($orange, .18);
+    border-color: rgba($orange, .55);
+  }
+}
+
+.btn-toggle-chevron {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  transition: transform .2s;
+
+  &--open {
+    transform: rotate(180deg);
+  }
+}
+
+.btn-toggle-spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid rgba($orange, .3);
+  border-top-color: $orange;
+  animation: spin .7s linear infinite;
+}
+
+// ── Sub-ranges panel ─────────────────────────────────────────────────
+.sub-ranges-panel {
+  border-top: 1px dashed rgba($orange, .2);
+  padding-top: .65rem;
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+  animation: fadeIn .2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sub-ranges-loading {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  color: $muted;
+  font-size: .82rem;
+  padding: .5rem 0;
+}
+
+.sub-ranges-error {
+  color: $red;
+  font-size: .82rem;
+  padding: .5rem 0;
+}
+
+.ser-spinner--sm {
+  width: 20px;
+  height: 20px;
+  border-width: 2px;
+}
+
+// ── Sub-ranges table ─────────────────────────────────────────────────
+.ranges-table--sub {
+  font-size: .82rem;
+
+  td {
+    padding: .4rem .75rem;
+  }
+
+  th {
+    padding: .45rem .75rem;
+  }
+}
+
+// ── Pagination ───────────────────────────────────────────────────────
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  flex-wrap: wrap;
+
+  &--bottom {
+    justify-content: center;
+    margin-top: .2rem;
+  }
+}
+
+.pag-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: .3rem .65rem;
+  background: $surface2;
+  border: 1px solid $border;
+  border-radius: 7px;
+  color: $muted;
+  font-size: .78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .13s;
+  -webkit-tap-highlight-color: transparent;
+
+  &:hover:not(:disabled) {
+    border-color: $orange;
+    color: $orange;
+  }
+
+  &:disabled {
+    opacity: .3;
+    cursor: not-allowed;
+  }
+}
+
+.pag-info {
+  font-size: .75rem;
+  color: $muted;
+  font-variant-numeric: tabular-nums;
+  flex: 1;
+  text-align: center;
+
+  &--solo {
+    padding: .25rem 0;
+    font-weight: 600;
+  }
 }
