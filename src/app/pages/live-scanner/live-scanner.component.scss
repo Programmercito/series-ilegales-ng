@@ -342,11 +342,11 @@ $yellow: #ffc800;
 .scanned-item {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    padding: 0.85rem;
-    border-radius: 12px;
+    gap: 1.25rem;
+    padding: 1.1rem;
+    border-radius: 14px;
     border: 1px solid transparent;
-    animation: slideIn 0.3s ease-out;
+    animation: slideInPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 
     &.item-valid {
         background: linear-gradient(135deg, rgba(72, 199, 142, .1), rgba(72, 199, 142, .03));
@@ -367,29 +367,34 @@ $yellow: #ffc800;
     }
 }
 
-@keyframes slideIn {
-    from {
+@keyframes slideInPop {
+    0% {
         opacity: 0;
-        transform: translateY(-10px);
+        transform: translateY(-15px) scale(0.95);
     }
 
-    to {
+    50% {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateY(0) scale(1.02);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
     }
 }
 
 .item-icon {
-    width: 28px;
-    height: 28px;
+    width: 38px;
+    height: 38px;
     flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
 
     svg {
-        width: 20px;
-        height: 20px;
+        width: 28px;
+        height: 28px;
     }
 }
 
@@ -400,9 +405,10 @@ $yellow: #ffc800;
 }
 
 .item-serial {
-    font-weight: 700;
-    font-size: 1.05rem;
+    font-weight: 800;
+    font-size: 1.45rem;
     color: $text;
+    letter-spacing: .03em;
 }
 
 .item-serial-invalid {
