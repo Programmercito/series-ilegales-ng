@@ -40,6 +40,8 @@ export class LiveScannerComponent implements OnInit, OnDestroy {
     private scanInterval: ReturnType<typeof setInterval> | null = null;
     private isProcessingFrame = false;
     private billIdCounter = 0;
+    // Rotate through preprocessing variants each scan cycle
+    private variantIndex = 0;
 
     constructor(private validationService: ValidationService) { }
 
@@ -76,8 +78,8 @@ export class LiveScannerComponent implements OnInit, OnDestroy {
         });
         await this.worker.setParameters({
             tessedit_char_whitelist: '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ ',
-            // SPARSE_TEXT is more tolerant with text mixed in patterned backgrounds
-            tessedit_pageseg_mode: PSM.SPARSE_TEXT,
+            // SINGLE_LINE: ideal for a single serial number row
+            tessedit_pageseg_mode: PSM.SINGLE_LINE,
         });
         this.workerReady = true;
     }
@@ -139,6 +141,22 @@ export class LiveScannerComponent implements OnInit, OnDestroy {
         }, 1500);
     }
 
+    /**
+     * Preprocessing variants — rotated each scan tick so we try
+     * different strategies without slowing down a single frame.
+     *
+     * v0 – center strip, adaptive threshold (dark text on light bg)
+     * v1 – center strip, adaptive threshold INVERTED (light text on dark bg)
+     * v2 – center strip, high contrast grayscale only (no binary threshold)
+     * v3 – wider strip, unsharp mask + adaptive threshold
+     */
+    private readonly VARIANTS = [
+        { cropTop: 0.25, cropBot: 0.75, invert: false, sharpen: false, threshold: true },
+        { cropTop: 0.25, cropBot: 0.75, invert: true, sharpen: false, threshold: true },
+        { cropTop: 0.20, cropBot: 0.80, invert: false, sharpen: false, threshold: false },
+        { cropTop: 0.20, cropBot: 0.80, invert: false, sharpen: true, threshold: true },
+    ] as const;
+
     private async processFrame() {
         const video = this.videoElement?.nativeElement;
         const canvas = this.canvasElement?.nativeElement;
@@ -146,14 +164,18 @@ export class LiveScannerComponent implements OnInit, OnDestroy {
 
         const vw = video.videoWidth;
         const vh = video.videoHeight;
+        if (!this.worker) return;
 
-        // ── Step 1: Crop the central horizontal strip (25%–75% of height)
-        // Bill serial numbers are usually on the horizontal center of the note.
-        const cropY = Math.floor(vh * 0.25);
-        const cropH = Math.floor(vh * 0.5);
+        // Pick current variant and advance index
+        const variant = this.VARIANTS[this.variantIndex % this.VARIANTS.length];
+        this.variantIndex++;
 
-        // ── Step 2: Scale up for better OCR accuracy (min 800px wide)
-        const targetW = Math.max(800, Math.min(1200, vw));
+        // ── Crop region
+        const cropY = Math.floor(vh * variant.cropTop);
+        const cropH = Math.floor(vh * (variant.cropBot - variant.cropTop));
+
+        // ── Scale to at least 900px wide for fine-detail OCR
+        const targetW = Math.max(900, Math.min(1400, vw));
         const scale = targetW / vw;
         const targetH = Math.round(cropH * scale);
 
@@ -162,42 +184,89 @@ export class LiveScannerComponent implements OnInit, OnDestroy {
 
         const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
 
-        // ── Step 3: Draw the cropped region scaled up, with basic contrast boost
-        ctx.filter = 'grayscale(100%) contrast(200%) brightness(110%)';
+        // ── Draw with grayscale + contrast boost
+        ctx.filter = 'grayscale(100%) contrast(210%) brightness(105%)';
         ctx.drawImage(video, 0, cropY, vw, cropH, 0, 0, targetW, targetH);
         ctx.filter = 'none';
 
-        // ── Step 4: Adaptive threshold to remove banknote background texture
-        this.applyAdaptiveThreshold(ctx, targetW, targetH);
+        // ── Optional sharpening (unsharp mask via convolution)
+        if (variant.sharpen) {
+            this.applySharpen(ctx, targetW, targetH);
+        }
+
+        // ── Optional adaptive threshold
+        if (variant.threshold) {
+            this.applyAdaptiveThreshold(ctx, targetW, targetH, variant.invert);
+        }
 
         const dataUrl = canvas.toDataURL('image/png');
 
-        if (!this.worker) return;
         const result = await this.worker.recognize(dataUrl);
+
+        // ── Confidence gate: skip if mean word confidence is too low ─────
+        // result.data.lines/words exist at runtime but aren't in TS types
+        const pageData = result.data as any;
+        const lines: any[] = pageData.lines ?? [];
+        let totalConf = 0, count = 0;
+        for (const line of lines) {
+            for (const word of (line.words ?? [])) {
+                totalConf += word.confidence;
+                count++;
+            }
+        }
+        if (count > 0 && totalConf / count < 30) return; // too noisy, skip frame
+
         this.extractAndVerify(result.data.text);
     }
 
+    /** Simple 3×3 unsharp mask to make thin digit strokes crisper. */
+    private applySharpen(ctx: CanvasRenderingContext2D, w: number, h: number) {
+        const src = ctx.getImageData(0, 0, w, h);
+        const dst = ctx.createImageData(w, h);
+        const s: Uint8ClampedArray = src.data;
+        const d: Uint8ClampedArray = dst.data;
+        // kernel: center=5, edges=-1, corners=0  (equivalent to sharpen)
+        for (let y = 1; y < h - 1; y++) {
+            for (let x = 1; x < w - 1; x++) {
+                for (let c = 0; c < 3; c++) {
+                    const i = (y * w + x) * 4 + c;
+                    const val =
+                        5 * s[i]
+                        - s[((y - 1) * w + x) * 4 + c]
+                        - s[((y + 1) * w + x) * 4 + c]
+                        - s[(y * w + x - 1) * 4 + c]
+                        - s[(y * w + x + 1) * 4 + c];
+                    d[i] = Math.min(255, Math.max(0, val));
+                }
+                d[(y * w + x) * 4 + 3] = 255;
+            }
+        }
+        ctx.putImageData(dst, 0, 0);
+    }
+
     /**
-     * Adaptive threshold: for each pixel, compare its brightness to the
-     * local neighborhood average. If brighter → white, else → black.
-     * This removes textured banknote backgrounds while preserving printed digits.
+     * Adaptive threshold using an integral-image box filter for speed.
+     * invert=true flips the binary result — useful for light-on-dark serials.
      */
-    private applyAdaptiveThreshold(ctx: CanvasRenderingContext2D, w: number, h: number) {
+    private applyAdaptiveThreshold(
+        ctx: CanvasRenderingContext2D, w: number, h: number, invert = false
+    ) {
         const imageData = ctx.getImageData(0, 0, w, h);
         const data = imageData.data;
-        const blockSize = 21; // neighborhood radius
-        const C = 10;         // constant subtracted from mean
+        const blockSize = 25; // larger block → better for noisy banknote backgrounds
+        const C = 8;
 
-        // Convert to grayscale in-place
+        // Luminance to grayscale
         const gray = new Uint8Array(w * h);
         for (let i = 0; i < w * h; i++) {
-            const r = data[i * 4];
-            const g = data[i * 4 + 1];
-            const b = data[i * 4 + 2];
-            gray[i] = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
+            gray[i] = Math.round(
+                0.299 * data[i * 4] +
+                0.587 * data[i * 4 + 1] +
+                0.114 * data[i * 4 + 2]
+            );
         }
 
-        // Compute integral image for fast local mean
+        // Integral image
         const integral = new Float64Array((w + 1) * (h + 1));
         for (let y = 0; y < h; y++) {
             for (let x = 0; x < w; x++) {
@@ -223,7 +292,9 @@ export class LiveScannerComponent implements OnInit, OnDestroy {
                     - integral[(y2 + 1) * (w + 1) + x1]
                     + integral[y1 * (w + 1) + x1];
                 const mean = sum / count;
-                const pixel = gray[y * w + x] < mean - C ? 0 : 255;
+                let isDark = gray[y * w + x] < mean - C;
+                if (invert) isDark = !isDark;
+                const pixel = isDark ? 0 : 255;
                 const idx = (y * w + x) * 4;
                 data[idx] = data[idx + 1] = data[idx + 2] = pixel;
                 data[idx + 3] = 255;
@@ -240,34 +311,37 @@ export class LiveScannerComponent implements OnInit, OnDestroy {
             .toUpperCase()
             .trim();
 
-        // ── Extract all digit groups of 7+ chars, fix OCR letter→digit mistakes ──
-        // O→0, I/L/J→1 (when inside digit run), S→5
-        const fixedText = normalized.replace(/[0-9OIJLS]{7,}/g, (seq) =>
-            seq
-                .replace(/O/g, '0')
-                .replace(/I/g, '1')
-                .replace(/L/g, '1')
-                .replace(/J/g, '1')
-                .replace(/S/g, '5')
+        // ── Fix O→0 and S→5 ONLY within pure digit runs ────────────────
+        // We do NOT touch I/J/L here because they may be the series letter
+        // right after the number (e.g. "118034088 J")
+        const fixedText = normalized.replace(/\b[0-9OS]{6,}\b/g, (seq) =>
+            seq.replace(/O/g, '0').replace(/S/g, '5')
         );
 
-        // ── Find all pure digit sequences of length 7–10 ──────────────
-        // (after the letter-fix pass, sequences should now be all digits)
-        const numMatches = [...fixedText.matchAll(/\b(\d{7,10})\b/g)]
-            .map(m => parseInt(m[1], 10))
-            .filter(n => !isNaN(n));
+        // ── Match: 7-10 digits, optional space, then a capital letter ──
+        const patterns = [
+            /(\d{7,10})\s+([A-Z])\b/g,   // "118034088 J"
+            /(\d{7,10})([A-Z])\b/g,       // "118034088J"
+        ];
 
-        if (numMatches.length === 0) return;
+        const candidates: Array<{ num: number; letter: string; len: number }> = [];
+        for (const pattern of patterns) {
+            pattern.lastIndex = 0;
+            let match: RegExpExecArray | null;
+            while ((match = pattern.exec(fixedText)) !== null) {
+                candidates.push({
+                    num: parseInt(match[1], 10),
+                    letter: match[2],
+                    len: match[1].length,
+                });
+            }
+        }
 
-        // ── Pick the LONGEST number (most digits = most likely correct) ──
-        const bestNum = numMatches.reduce((a, b) =>
-            String(a).length >= String(b).length ? a : b
-        );
+        if (candidates.length === 0) return;
 
-        // ── ALWAYS force letter to 'B' — this app is Serie B only ──────
-        // This eliminates all J→L, J→S, J→I OCR confusions for the series letter.
-        const forcedLetter = 'B';
-        const serialStr = `${bestNum} ${forcedLetter}`;
+        // ── Pick best candidate: prefer longer digit sequence ───────────
+        const best = candidates.reduce((a, b) => a.len >= b.len ? a : b);
+        const serialStr = `${best.num} ${best.letter}`;
 
         // Avoid multiple detections of the same serial within a session
         if (this.recentSerials.has(serialStr)) return;
@@ -278,7 +352,7 @@ export class LiveScannerComponent implements OnInit, OnDestroy {
 
         // Verify it
         const denom = this.selectedDenom()!;
-        this.validationService.validateSerial(bestNum, forcedLetter, denom).then(res => {
+        this.validationService.validateSerial(best.num, best.letter, denom).then(res => {
             const newBill: ScannedBill = {
                 id: ++this.billIdCounter,
                 serial: serialStr,
