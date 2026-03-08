@@ -1,0 +1,459 @@
+// ── Tokens ───────────────────────────────────────────────────────────
+$bg: #071410;
+$surface: #0d1f1a;
+$surface2: #112b24;
+$border: #1e4a3a;
+$green: #48c78e;
+$green-dim: #2fa870;
+$green-glow: rgba(72, 199, 142, .2);
+$text: #e6f4ef;
+$muted: #7ab89a;
+$red: #ff453a;
+$red-glow: rgba(255, 69, 58, .2);
+$yellow: #ffc800;
+
+// ── Main ─────────────────────────────────────────────────────────────
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.25rem 1rem 2rem;
+    width: 100%;
+}
+
+.main-content--live {
+    gap: 1rem;
+}
+
+// ── Card ─────────────────────────────────────────────────────────────
+.scan-card {
+    width: 100%;
+    max-width: 480px;
+    background: $surface;
+    border: 1px solid $border;
+    border-radius: 20px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: .85rem;
+    box-shadow: 0 2px 24px rgba(0, 0, 0, .4), 0 0 0 1px rgba(72, 199, 142, .04);
+}
+
+// ── Denom Select ─────────────────────────────────────────────────────
+.denom-select-header {
+    text-align: center;
+    margin-bottom: .25rem;
+}
+
+.denom-select-icon {
+    width: 32px;
+    height: 32px;
+    color: $green;
+    margin-bottom: .5rem;
+}
+
+.denom-select-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: $text;
+    margin-bottom: .25rem;
+}
+
+.denom-select-hint {
+    font-size: .85rem;
+    color: $muted;
+}
+
+.denom-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: .65rem;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    padding: .72rem 1.5rem;
+    border-radius: 12px;
+    font-size: .9rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all .18s;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.btn-denom {
+    background: $surface2;
+    border: 1.5px solid $border;
+    padding: 1rem;
+    transition: transform .15s, border-color .2s, background .2s, box-shadow .2s;
+
+    &:hover {
+        background: lighten($surface2, 3%);
+        border-color: rgba(72, 199, 142, .6);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, .3);
+        transform: translateY(-2px);
+    }
+
+    &:active {
+        transform: scale(0.98);
+    }
+
+    .denom-value {
+        font-size: 1.35rem;
+        font-weight: 800;
+        color: $green;
+        letter-spacing: .02em;
+    }
+}
+
+.btn-reset {
+    width: 100%;
+    background: $surface2;
+    color: $text;
+    border: 1.5px solid $border;
+    padding: .85rem;
+
+    &:hover {
+        border-color: $green;
+        color: $green;
+    }
+}
+
+// ── Processing ───────────────────────────────────────────────────────
+.progress-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .65rem;
+    padding: 1rem 0;
+}
+
+.spinner-wrap {
+    position: relative;
+    width: 52px;
+    height: 52px;
+}
+
+.spinner {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: 3px solid $border;
+    border-top-color: $green;
+    animation: spin .75s linear infinite;
+    box-shadow: 0 0 12px $green-glow;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.progress-label {
+    font-size: .85rem;
+    color: $muted;
+    letter-spacing: .03em;
+}
+
+// ── Camera Overlay ───────────────────────────────────────────────────
+.live-camera-container {
+    width: 100%;
+    max-width: 480px;
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+    background: #000;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+}
+
+.live-video {
+    width: 100%;
+    max-height: 50vh;
+    object-fit: cover;
+    display: block;
+}
+
+.camera-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.3); // Slight dim for better contrast
+}
+
+.target-box {
+    width: 80%;
+    height: 80px; // Rough height for a bill's serial number
+    border: 2px dashed rgba(255, 255, 255, 0.4);
+    border-radius: 8px;
+    position: relative;
+    box-shadow: 0 0 0 4000px rgba(0, 0, 0, 0.5); // Darken outside
+    margin-bottom: 1rem;
+
+    .scan-line-live {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, $green, transparent);
+        box-shadow: 0 0 8px $green;
+        top: 50%;
+        animation: live-scan-sweep 2s ease-in-out infinite alternate;
+    }
+}
+
+@keyframes live-scan-sweep {
+    0% {
+        top: 0;
+    }
+
+    100% {
+        top: 100%;
+    }
+}
+
+.camera-hint {
+    color: white;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+    margin-bottom: 1.5rem;
+}
+
+.btn-stop-camera {
+    background: rgba($surface, 0.8);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    color: $text;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+
+    svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    &:hover {
+        background: rgba($surface, 1);
+    }
+}
+
+.hidden-canvas {
+    display: none;
+}
+
+// ── Scanned List ─────────────────────────────────────────────────────
+.scanned-list-container {
+    width: 100%;
+    max-width: 480px;
+    background: $surface;
+    border: 1px solid $border;
+    border-radius: 20px;
+    padding: 1rem;
+    min-height: 150px;
+    max-height: 35vh;
+    overflow-y: auto;
+
+    // Custom scrollbar
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: $border;
+        border-radius: 4px;
+    }
+}
+
+.empty-list-state {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 0;
+    text-align: center;
+}
+
+.pulse-indicator {
+    width: 12px;
+    height: 12px;
+    background-color: $green;
+    border-radius: 50%;
+    box-shadow: 0 0 0 0 rgba($green, 0.7);
+    animation: pulse-ring 1.5s infinite;
+    margin-bottom: 1rem;
+}
+
+@keyframes pulse-ring {
+    0% {
+        box-shadow: 0 0 0 0 rgba($green, 0.7);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba($green, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba($green, 0);
+    }
+}
+
+.empty-list-msg {
+    color: $text;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.empty-list-sub {
+    color: $muted;
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+}
+
+.scanned-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.scanned-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.85rem;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    animation: slideIn 0.3s ease-out;
+
+    &.item-valid {
+        background: linear-gradient(135deg, rgba(72, 199, 142, .1), rgba(72, 199, 142, .03));
+        border-color: rgba(72, 199, 142, .35);
+
+        .item-icon {
+            color: $green;
+        }
+    }
+
+    &.item-invalid {
+        background: linear-gradient(135deg, rgba(255, 69, 58, .08), rgba(255, 69, 58, .03));
+        border-color: rgba(255, 69, 58, .3);
+
+        .item-icon {
+            color: $red;
+        }
+    }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.item-icon {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    svg {
+        width: 20px;
+        height: 20px;
+    }
+}
+
+.item-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.item-serial {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: $text;
+}
+
+.item-serial-invalid {
+    color: $red;
+}
+
+.item-msg {
+    font-size: 0.8rem;
+    color: $muted;
+    line-height: 1.3;
+}
+
+// ── Disclaimer ───────────────────────────────────────────────────────
+.disclaimer {
+    display: flex;
+    align-items: flex-start;
+    gap: .6rem;
+    background: rgba($yellow, .06);
+    border: 1px solid rgba($yellow, .2);
+    border-radius: 12px;
+    padding: .75rem 1rem;
+    width: 100%;
+    max-width: 480px;
+    margin-top: .75rem;
+}
+
+.disclaimer-icon {
+    width: 24px;
+    height: 24px;
+    color: $yellow;
+    flex-shrink: 0;
+    margin-top: .1rem;
+}
+
+.disclaimer-text {
+    font-size: .88rem;
+    color: $muted;
+    line-height: 1.5;
+
+    strong {
+        color: $yellow;
+        font-weight: 700;
+    }
+
+    &--date {
+        margin-top: .4rem;
+        font-size: .82rem;
+        color: rgba($yellow, .8);
+
+        strong {
+            color: $yellow;
+        }
+    }
+}
