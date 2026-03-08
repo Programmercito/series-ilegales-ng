@@ -233,44 +233,41 @@ export class LiveScannerComponent implements OnInit, OnDestroy {
     }
 
     private extractAndVerify(text: string) {
-        // Fix common OCR confusions for digits on banknote patterns:
-        //   O → 0,  I → 1,  S → 5 (only in digit positions)
+        // ── Normalize raw OCR text ──────────────────────────────────────
         const normalized = text
             .replace(/\n/g, ' ')
             .replace(/\s+/g, ' ')
             .toUpperCase()
             .trim();
 
-        // Replace common OCR digit mistakes inside numeric sequences
-        const digitFix = normalized.replace(/(\d|[OoIiSs]){7,}/g, (seq) =>
-            seq.replace(/O/g, '0').replace(/I/g, '1').replace(/S/g, '5')
+        // ── Extract all digit groups of 7+ chars, fix OCR letter→digit mistakes ──
+        // O→0, I/L/J→1 (when inside digit run), S→5
+        const fixedText = normalized.replace(/[0-9OIJLS]{7,}/g, (seq) =>
+            seq
+                .replace(/O/g, '0')
+                .replace(/I/g, '1')
+                .replace(/L/g, '1')
+                .replace(/J/g, '1')
+                .replace(/S/g, '5')
         );
 
-        const patterns = [
-            /(\d{7,10})\s+([A-Z])\b/g,
-            /(\d{7,10})([A-Z])\b/g,
-        ];
+        // ── Find all pure digit sequences of length 7–10 ──────────────
+        // (after the letter-fix pass, sequences should now be all digits)
+        const numMatches = [...fixedText.matchAll(/\b(\d{7,10})\b/g)]
+            .map(m => parseInt(m[1], 10))
+            .filter(n => !isNaN(n));
 
-        const candidates: Array<{ num: number; letter: string }> = [];
-        for (const pattern of patterns) {
-            let match: RegExpExecArray | null;
-            pattern.lastIndex = 0;
-            while ((match = pattern.exec(digitFix)) !== null) {
-                candidates.push({ num: parseInt(match[1], 10), letter: match[2] });
-            }
-        }
+        if (numMatches.length === 0) return;
 
-        if (candidates.length === 0) return;
+        // ── Pick the LONGEST number (most digits = most likely correct) ──
+        const bestNum = numMatches.reduce((a, b) =>
+            String(a).length >= String(b).length ? a : b
+        );
 
-        // Pick top candidate (prefer B)
-        const sorted = candidates.sort((a, b) => {
-            if (a.letter === 'B' && b.letter !== 'B') return -1;
-            if (a.letter !== 'B' && b.letter === 'B') return 1;
-            return String(b.num).length - String(a.num).length;
-        });
-
-        const topCandidate = sorted[0];
-        const serialStr = `${topCandidate.num} ${topCandidate.letter}`;
+        // ── ALWAYS force letter to 'B' — this app is Serie B only ──────
+        // This eliminates all J→L, J→S, J→I OCR confusions for the series letter.
+        const forcedLetter = 'B';
+        const serialStr = `${bestNum} ${forcedLetter}`;
 
         // Avoid multiple detections of the same serial within a session
         if (this.recentSerials.has(serialStr)) return;
@@ -281,7 +278,7 @@ export class LiveScannerComponent implements OnInit, OnDestroy {
 
         // Verify it
         const denom = this.selectedDenom()!;
-        this.validationService.validateSerial(topCandidate.num, topCandidate.letter, denom).then(res => {
+        this.validationService.validateSerial(bestNum, forcedLetter, denom).then(res => {
             const newBill: ScannedBill = {
                 id: ++this.billIdCounter,
                 serial: serialStr,
