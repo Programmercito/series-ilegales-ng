@@ -29,6 +29,7 @@ export class LiveScannerComponent implements OnInit, OnDestroy {
     selectedDenom = signal<number | null>(null);
     errorMsg = signal<string | null>(null);
     progressMsg = signal<string>('Iniciando...');
+    isScanning = signal<boolean>(false); // Visual feedback when processing a frame
 
     scannedBills = signal<ScannedBill[]>([]);
     recentSerials = new Set<string>(); // To avoid duplicate scans in a short period
@@ -126,19 +127,30 @@ export class LiveScannerComponent implements OnInit, OnDestroy {
     }
 
     private startScanningLoop() {
-        // Attempt to scan frame every 1500ms — allows frame to stabilize
+        // Attempt to auto-scan every 4s as fallback; user can tap to scan immediately
         this.scanInterval = setInterval(async () => {
             if (this.isProcessingFrame || !this.workerReady || this.status() !== 'scanning') return;
+            await this._runScan();
+        }, 4000);
+    }
 
-            this.isProcessingFrame = true;
-            try {
-                await this.processFrame();
-            } catch (err) {
-                console.error('Frame processing error', err);
-            } finally {
-                this.isProcessingFrame = false;
-            }
-        }, 1500);
+    /** Called when the user taps the camera preview — scans immediately */
+    async scanNow() {
+        if (this.isProcessingFrame || !this.workerReady || this.status() !== 'scanning') return;
+        await this._runScan();
+    }
+
+    private async _runScan() {
+        this.isProcessingFrame = true;
+        this.isScanning.set(true);
+        try {
+            await this.processFrame();
+        } catch (err) {
+            console.error('Frame processing error', err);
+        } finally {
+            this.isProcessingFrame = false;
+            this.isScanning.set(false);
+        }
     }
 
     /**

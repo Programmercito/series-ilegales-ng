@@ -260,6 +260,98 @@ $yellow: #ffc800;
     display: none;
 }
 
+// ── Tap-to-scan interaction ───────────────────────────────────────────
+.live-camera-container {
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+
+    &.scanning-active {
+        outline: 2px solid $green;
+        outline-offset: 2px;
+        box-shadow: 0 0 0 4px $green-glow, 0 4px 24px rgba(0, 0, 0, 0.5);
+    }
+
+    &:active {
+        transform: scale(0.995);
+    }
+}
+
+// Overlay que aparece cuando está procesando el frame
+.scanning-flash {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: .75rem;
+    z-index: 10;
+    animation: flashIn 0.15s ease;
+}
+
+@keyframes flashIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.scanning-spinner {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 3px solid rgba($green, .3);
+    border-top-color: $green;
+    animation: spin .6s linear infinite;
+    box-shadow: 0 0 16px $green-glow;
+}
+
+.scanning-flash-text {
+    color: $green;
+    font-weight: 700;
+    font-size: .95rem;
+    letter-spacing: .04em;
+    text-shadow: 0 0 8px rgba($green, .5);
+}
+
+// Badge "Toca para escanear" en la parte inferior del preview
+.tap-hint {
+    position: absolute;
+    bottom: 3.5rem; // above the stop button
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    background: rgba(0, 0, 0, .55);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba($green, .35);
+    border-radius: 20px;
+    padding: .35rem .85rem .35rem .6rem;
+    color: $green;
+    font-size: .8rem;
+    font-weight: 600;
+    letter-spacing: .02em;
+    transition: opacity .2s;
+    pointer-events: none;
+
+    &.tap-hint--busy {
+        opacity: 0; // hide when scanning flash is shown
+    }
+}
+
+.tap-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+
 // ── Scanned List ─────────────────────────────────────────────────────
 .scanned-list-container {
     width: 100%;

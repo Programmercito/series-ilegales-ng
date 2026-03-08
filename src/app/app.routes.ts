@@ -4,8 +4,9 @@ import { LiveScannerComponent } from './pages/live-scanner/live-scanner.componen
 import { SerialesComponent } from './pages/seriales/seriales.component';
 
 export const routes: Routes = [
-  { path: '', component: ScannerComponent },
+  { path: '', redirectTo: 'en-vivo', pathMatch: 'full' },
+  { path: 'foto', component: ScannerComponent },
   { path: 'en-vivo', component: LiveScannerComponent },
   { path: 'seriales', component: SerialesComponent },
-  { path: '**', redirectTo: '' },
+  { path: '**', redirectTo: 'en-vivo' },
 ];

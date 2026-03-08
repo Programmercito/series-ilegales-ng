@@ -21,14 +21,16 @@
   @if (status() === 'starting') {
   <div class="scan-card scan-card--processing">
     <div class="progress-section">
-      <div class="spinner-wrap"><div class="spinner"></div></div>
+      <div class="spinner-wrap">
+        <div class="spinner"></div>
+      </div>
       <p class="progress-label">Activando cámara...</p>
     </div>
   </div>
   }
 
   @if (status() === 'scanning') {
-  <div class="live-camera-container">
+  <div class="live-camera-container" (click)="scanNow()" [class.scanning-active]="isScanning()">
     <video #videoElement class="live-video" playsinline muted autoplay></video>
     <div class="camera-overlay">
       <div class="target-box">
@@ -38,9 +40,26 @@
         <div class="corner bottom-right"></div>
         <div class="scan-line-live"></div>
       </div>
-      <p class="camera-hint">Apunta la cámara al número de serie</p>
-      
-      <button class="btn-stop-camera" (click)="reset()">
+
+      <!-- Tap feedback overlay -->
+      @if (isScanning()) {
+      <div class="scanning-flash">
+        <div class="scanning-spinner"></div>
+        <p class="scanning-flash-text">Analizando...</p>
+      </div>
+      }
+
+      <!-- Tap to scan button hint -->
+      <div class="tap-hint" [class.tap-hint--busy]="isScanning()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="tap-icon">
+          <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14v-4z" />
+          <rect x="3" y="6" width="12" height="12" rx="2" ry="2" />
+          <circle cx="9" cy="12" r="1.5" fill="currentColor" stroke="none" />
+        </svg>
+        <span>{{ isScanning() ? 'Procesando...' : 'Toca para escanear' }}</span>
+      </div>
+
+      <button class="btn-stop-camera" (click)="$event.stopPropagation(); reset()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M18 6L6 18M6 6l12 12" />
         </svg>
@@ -50,31 +69,37 @@
     <canvas #canvasElement class="hidden-canvas"></canvas>
   </div>
 
+
   <div class="scanned-list-container">
     @if (scannedBills().length === 0) {
-      <div class="empty-list-state">
-        <div class="pulse-indicator"></div>
-        <p class="empty-list-msg">Esperando billetes...</p>
-        <p class="empty-list-sub">{{ progressMsg() }}</p>
-      </div>
+    <div class="empty-list-state">
+      <div class="pulse-indicator"></div>
+      <p class="empty-list-msg">Esperando billetes...</p>
+      <p class="empty-list-sub">{{ progressMsg() }}</p>
+    </div>
     } @else {
-      <div class="scanned-list">
-        @for (bill of scannedBills(); track bill.id) {
-          <div class="scanned-item" [class.item-valid]="bill.result.isValid" [class.item-invalid]="!bill.result.isValid">
-            <div class="item-icon">
-              @if (bill.result.isValid) {
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              } @else {
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-              }
-            </div>
-            <div class="item-content">
-              <span class="item-serial" [class.item-serial-invalid]="!bill.result.isValid">{{ bill.serial }}</span>
-              <span class="item-msg">{{ bill.result.message }}</span>
-            </div>
-          </div>
-        }
+    <div class="scanned-list">
+      @for (bill of scannedBills(); track bill.id) {
+      <div class="scanned-item" [class.item-valid]="bill.result.isValid" [class.item-invalid]="!bill.result.isValid">
+        <div class="item-icon">
+          @if (bill.result.isValid) {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          } @else {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+          }
+        </div>
+        <div class="item-content">
+          <span class="item-serial" [class.item-serial-invalid]="!bill.result.isValid">{{ bill.serial }}</span>
+          <span class="item-msg">{{ bill.result.message }}</span>
+        </div>
       </div>
+      }
+    </div>
     }
   </div>
   }
