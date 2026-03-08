@@ -78,8 +78,8 @@ export class LiveScannerComponent implements OnInit, OnDestroy {
         });
         await this.worker.setParameters({
             tessedit_char_whitelist: '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ ',
-            // SINGLE_LINE: ideal for a single serial number row
-            tessedit_pageseg_mode: PSM.SINGLE_LINE,
+            // SPARSE_TEXT: tolerant with patterned/textured backgrounds like banknotes
+            tessedit_pageseg_mode: PSM.SPARSE_TEXT,
         });
         this.workerReady = true;
     }
@@ -202,20 +202,6 @@ export class LiveScannerComponent implements OnInit, OnDestroy {
         const dataUrl = canvas.toDataURL('image/png');
 
         const result = await this.worker.recognize(dataUrl);
-
-        // ── Confidence gate: skip if mean word confidence is too low ─────
-        // result.data.lines/words exist at runtime but aren't in TS types
-        const pageData = result.data as any;
-        const lines: any[] = pageData.lines ?? [];
-        let totalConf = 0, count = 0;
-        for (const line of lines) {
-            for (const word of (line.words ?? [])) {
-                totalConf += word.confidence;
-                count++;
-            }
-        }
-        if (count > 0 && totalConf / count < 30) return; // too noisy, skip frame
-
         this.extractAndVerify(result.data.text);
     }
 
