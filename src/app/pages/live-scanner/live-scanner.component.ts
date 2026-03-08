@@ -76,7 +76,8 @@ export class LiveScannerComponent implements OnInit, OnDestroy {
         });
         await this.worker.setParameters({
             tessedit_char_whitelist: '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ ',
-            tessedit_pageseg_mode: PSM.SINGLE_BLOCK,
+            // SPARSE_TEXT is more tolerant with text mixed in patterned backgrounds
+            tessedit_pageseg_mode: PSM.SPARSE_TEXT,
         });
         this.workerReady = true;
     }
@@ -123,7 +124,7 @@ export class LiveScannerComponent implements OnInit, OnDestroy {
     }
 
     private startScanningLoop() {
-        // Attempt to scan frame every 1000ms
+        // Attempt to scan frame every 1500ms — allows frame to stabilize
         this.scanInterval = setInterval(async () => {
             if (this.isProcessingFrame || !this.workerReady || this.status() !== 'scanning') return;
 
@@ -135,7 +136,7 @@ export class LiveScannerComponent implements OnInit, OnDestroy {
             } finally {
                 this.isProcessingFrame = false;
             }
-        }, 1000);
+        }, 1500);
     }
 
     private async processFrame() {
@@ -143,34 +144,107 @@ export class LiveScannerComponent implements OnInit, OnDestroy {
         const canvas = this.canvasElement?.nativeElement;
         if (!video || !canvas || video.videoWidth === 0) return;
 
-        // To improve OCR performance on a full video frame, we resize and crop the central area or process the whole frame.
-        // We will extract a middle/central slice which usually corresponds to where the user will point the bill.
         const vw = video.videoWidth;
         const vh = video.videoHeight;
 
-        // Set canvas to a fixed size for tesseract efficiency
-        const targetW = Math.min(600, vw);
+        // ── Step 1: Crop the central horizontal strip (25%–75% of height)
+        // Bill serial numbers are usually on the horizontal center of the note.
+        const cropY = Math.floor(vh * 0.25);
+        const cropH = Math.floor(vh * 0.5);
+
+        // ── Step 2: Scale up for better OCR accuracy (min 800px wide)
+        const targetW = Math.max(800, Math.min(1200, vw));
         const scale = targetW / vw;
-        const targetH = vh * scale;
+        const targetH = Math.round(cropH * scale);
 
         canvas.width = targetW;
         canvas.height = targetH;
 
-        const ctx = canvas.getContext('2d')!;
+        const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
 
-        // Grayscale / High Contrast filter
-        ctx.filter = 'grayscale(100%) contrast(170%) brightness(115%)';
-        ctx.drawImage(video, 0, 0, targetW, targetH);
+        // ── Step 3: Draw the cropped region scaled up, with basic contrast boost
+        ctx.filter = 'grayscale(100%) contrast(200%) brightness(110%)';
+        ctx.drawImage(video, 0, cropY, vw, cropH, 0, 0, targetW, targetH);
+        ctx.filter = 'none';
 
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        // ── Step 4: Adaptive threshold to remove banknote background texture
+        this.applyAdaptiveThreshold(ctx, targetW, targetH);
+
+        const dataUrl = canvas.toDataURL('image/png');
 
         if (!this.worker) return;
         const result = await this.worker.recognize(dataUrl);
         this.extractAndVerify(result.data.text);
     }
 
+    /**
+     * Adaptive threshold: for each pixel, compare its brightness to the
+     * local neighborhood average. If brighter → white, else → black.
+     * This removes textured banknote backgrounds while preserving printed digits.
+     */
+    private applyAdaptiveThreshold(ctx: CanvasRenderingContext2D, w: number, h: number) {
+        const imageData = ctx.getImageData(0, 0, w, h);
+        const data = imageData.data;
+        const blockSize = 21; // neighborhood radius
+        const C = 10;         // constant subtracted from mean
+
+        // Convert to grayscale in-place
+        const gray = new Uint8Array(w * h);
+        for (let i = 0; i < w * h; i++) {
+            const r = data[i * 4];
+            const g = data[i * 4 + 1];
+            const b = data[i * 4 + 2];
+            gray[i] = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
+        }
+
+        // Compute integral image for fast local mean
+        const integral = new Float64Array((w + 1) * (h + 1));
+        for (let y = 0; y < h; y++) {
+            for (let x = 0; x < w; x++) {
+                integral[(y + 1) * (w + 1) + (x + 1)] =
+                    gray[y * w + x]
+                    + integral[y * (w + 1) + (x + 1)]
+                    + integral[(y + 1) * (w + 1) + x]
+                    - integral[y * (w + 1) + x];
+            }
+        }
+
+        const half = Math.floor(blockSize / 2);
+        for (let y = 0; y < h; y++) {
+            for (let x = 0; x < w; x++) {
+                const x1 = Math.max(0, x - half);
+                const y1 = Math.max(0, y - half);
+                const x2 = Math.min(w - 1, x + half);
+                const y2 = Math.min(h - 1, y + half);
+                const count = (x2 - x1 + 1) * (y2 - y1 + 1);
+                const sum =
+                    integral[(y2 + 1) * (w + 1) + (x2 + 1)]
+                    - integral[y1 * (w + 1) + (x2 + 1)]
+                    - integral[(y2 + 1) * (w + 1) + x1]
+                    + integral[y1 * (w + 1) + x1];
+                const mean = sum / count;
+                const pixel = gray[y * w + x] < mean - C ? 0 : 255;
+                const idx = (y * w + x) * 4;
+                data[idx] = data[idx + 1] = data[idx + 2] = pixel;
+                data[idx + 3] = 255;
+            }
+        }
+        ctx.putImageData(imageData, 0, 0);
+    }
+
     private extractAndVerify(text: string) {
-        const normalized = text.replace(/\n/g, ' ').replace(/\s+/g, ' ').toUpperCase().trim();
+        // Fix common OCR confusions for digits on banknote patterns:
+        //   O → 0,  I → 1,  S → 5 (only in digit positions)
+        const normalized = text
+            .replace(/\n/g, ' ')
+            .replace(/\s+/g, ' ')
+            .toUpperCase()
+            .trim();
+
+        // Replace common OCR digit mistakes inside numeric sequences
+        const digitFix = normalized.replace(/(\d|[OoIiSs]){7,}/g, (seq) =>
+            seq.replace(/O/g, '0').replace(/I/g, '1').replace(/S/g, '5')
+        );
 
         const patterns = [
             /(\d{7,10})\s+([A-Z])\b/g,
@@ -181,7 +255,7 @@ export class LiveScannerComponent implements OnInit, OnDestroy {
         for (const pattern of patterns) {
             let match: RegExpExecArray | null;
             pattern.lastIndex = 0;
-            while ((match = pattern.exec(normalized)) !== null) {
+            while ((match = pattern.exec(digitFix)) !== null) {
                 candidates.push({ num: parseInt(match[1], 10), letter: match[2] });
             }
         }

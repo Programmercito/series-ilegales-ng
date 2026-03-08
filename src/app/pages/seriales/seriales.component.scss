@@ -23,6 +23,8 @@ $orange: #ff9f43;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 // ── Loading ───────────────────────────────────────────────────────────
@@ -73,8 +75,12 @@ $orange: #ff9f43;
 // ── Stats ─────────────────────────────────────────────────────────────
 .ser-stats {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: .85rem;
+  grid-template-columns: 1fr;
+  gap: .75rem;
+
+  @media (min-width: 480px) {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
 }
 
 
@@ -187,13 +193,15 @@ $orange: #ff9f43;
 // ── Table ─────────────────────────────────────────────────────────────
 .ranges-table-wrap {
   overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  width: 100%;
+  max-width: 100%;
 }
 
 .ranges-table {
   width: 100%;
+  min-width: 280px;
   border-collapse: collapse;
-  font-size: .88rem;
+  font-size: .85rem;
   font-variant-numeric: tabular-nums;
 
   thead tr {
@@ -201,11 +209,11 @@ $orange: #ff9f43;
   }
 
   th {
-    padding: .65rem 1rem;
+    padding: .55rem .75rem;
     text-align: left;
-    font-size: .7rem;
+    font-size: .68rem;
     text-transform: uppercase;
-    letter-spacing: .07em;
+    letter-spacing: .06em;
     color: $muted;
     font-weight: 700;
     white-space: nowrap;
@@ -213,7 +221,7 @@ $orange: #ff9f43;
   }
 
   td {
-    padding: .6rem 1rem;
+    padding: .5rem .75rem;
     color: $text;
     border-bottom: 1px solid rgba($border, .5);
     white-space: nowrap;
@@ -228,6 +236,18 @@ $orange: #ff9f43;
 
     &:last-child td {
       border-bottom: none;
+    }
+  }
+
+  @media (min-width: 480px) {
+    font-size: .88rem;
+
+    th {
+      padding: .65rem 1rem;
+    }
+
+    td {
+      padding: .6rem 1rem;
     }
   }
 }
@@ -280,29 +300,37 @@ $orange: #ff9f43;
   }
 }
 
-@media (max-width: 400px) {
-  .ser-stats {
-    grid-template-columns: 1fr;
-  }
-
+@media (max-width: 479px) {
   .stat-value {
-    font-size: 1.4rem;
+    font-size: 1.25rem;
   }
 
-  .ranges-table th,
-  .ranges-table td {
-    padding: .5rem .75rem;
+  .stat-label {
+    font-size: .68rem;
+  }
+
+  .stat-card {
+    flex-direction: row;
+    align-items: center;
+    gap: .75rem;
+    padding: .85rem 1rem;
   }
 }
 
 // ── Especial Section ─────────────────────────────────────────────────
 .especial-section {
   border-top: 1px solid rgba($orange, .2);
-  padding: 1rem 1.25rem;
+  padding: 1rem;
   background: rgba($orange, .03);
   display: flex;
   flex-direction: column;
   gap: .85rem;
+  overflow-x: hidden;
+  box-sizing: border-box;
+
+  @media (min-width: 480px) {
+    padding: 1rem 1.25rem;
+  }
 }
 
 .especial-section-header {
@@ -342,18 +370,30 @@ $orange: #ff9f43;
   border: 1px solid rgba($orange, .2);
   border-left: 3px solid $orange;
   border-radius: 12px;
-  padding: .85rem 1rem;
+  padding: .85rem .85rem;
   display: flex;
   flex-direction: column;
   gap: .55rem;
+  box-sizing: border-box;
+  overflow-x: hidden;
+
+  @media (min-width: 480px) {
+    padding: .85rem 1rem;
+  }
 }
 
 .especial-card-top {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: .75rem;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .6rem;
+
+  @media (min-width: 480px) {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+  }
 }
 
 .especial-card-info {
@@ -388,7 +428,7 @@ $orange: #ff9f43;
   display: inline-flex;
   align-items: center;
   gap: .4rem;
-  padding: .45rem .9rem;
+  padding: .4rem .85rem;
   background: rgba($orange, .1);
   border: 1px solid rgba($orange, .3);
   border-radius: 8px;
@@ -398,7 +438,13 @@ $orange: #ff9f43;
   cursor: pointer;
   transition: all .15s;
   white-space: nowrap;
+  flex-shrink: 0;
+  align-self: flex-start;
   -webkit-tap-highlight-color: transparent;
+
+  @media (min-width: 480px) {
+    align-self: center;
+  }
 
   &:hover {
     background: rgba($orange, .18);
@@ -434,6 +480,9 @@ $orange: #ff9f43;
   flex-direction: column;
   gap: .6rem;
   animation: fadeIn .2s ease;
+  overflow-x: hidden;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 @keyframes fadeIn {
@@ -471,14 +520,27 @@ $orange: #ff9f43;
 
 // ── Sub-ranges table ─────────────────────────────────────────────────
 .ranges-table--sub {
-  font-size: .82rem;
+  font-size: .78rem;
+  width: 100%;
 
   td {
-    padding: .4rem .75rem;
+    padding: .35rem .55rem;
   }
 
   th {
-    padding: .45rem .75rem;
+    padding: .4rem .55rem;
+  }
+
+  @media (min-width: 480px) {
+    font-size: .82rem;
+
+    td {
+      padding: .4rem .75rem;
+    }
+
+    th {
+      padding: .45rem .75rem;
+    }
   }
 }
 
@@ -486,8 +548,10 @@ $orange: #ff9f43;
 .pagination {
   display: flex;
   align-items: center;
-  gap: .4rem;
+  gap: .3rem;
   flex-wrap: wrap;
+  width: 100%;
+  box-sizing: border-box;
 
   &--bottom {
     justify-content: center;
@@ -499,15 +563,17 @@ $orange: #ff9f43;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: .3rem .65rem;
+  padding: .28rem .55rem;
   background: $surface2;
   border: 1px solid $border;
   border-radius: 7px;
   color: $muted;
-  font-size: .78rem;
+  font-size: .75rem;
   font-weight: 700;
   cursor: pointer;
   transition: all .13s;
+  white-space: nowrap;
+  flex-shrink: 0;
   -webkit-tap-highlight-color: transparent;
 
   &:hover:not(:disabled) {
@@ -522,11 +588,15 @@ $orange: #ff9f43;
 }
 
 .pag-info {
-  font-size: .75rem;
+  font-size: .72rem;
   color: $muted;
   font-variant-numeric: tabular-nums;
   flex: 1;
   text-align: center;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 
   &--solo {
     padding: .25rem 0;
